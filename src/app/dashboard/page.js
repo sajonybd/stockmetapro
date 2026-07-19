@@ -7,6 +7,9 @@ export default function DashboardPage() {
   const [licenses, setLicenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [pwdMsg, setPwdMsg] = useState('');
   const router = useRouter();
 
   const fetchUserData = async () => {
@@ -39,9 +42,25 @@ export default function DashboardPage() {
     setSubscribing(false);
   };
 
-  const handleLogout = () => {
-    document.cookie = "user_session=; path=/; max-age=0";
-    router.push('/login');
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  };
+
+  const changePassword = async (e) => {
+    e.preventDefault();
+    setPwdMsg('Updating...');
+    const res = await fetch('/api/user/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+    const data = await res.json();
+    setPwdMsg(data.message || (data.success ? 'Success' : 'Failed'));
+    if (data.success) {
+      setOldPassword('');
+      setNewPassword('');
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -91,6 +110,25 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Change Password */}
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Account Settings</h2>
+          <form onSubmit={changePassword} className="flex gap-4 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Old Password</label>
+              <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#1f934b] focus:border-[#1f934b]" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={6} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#1f934b] focus:border-[#1f934b]" />
+            </div>
+            <button type="submit" className="bg-gray-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-900 transition-colors">
+              Update Password
+            </button>
+            {pwdMsg && <span className="text-sm font-medium ml-2 text-gray-600">{pwdMsg}</span>}
+          </form>
         </div>
 
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Purchase New Subscription</h2>

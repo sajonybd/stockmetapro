@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function AdminThirdPartyKeys() {
   const [keys, setKeys] = useState([]);
-  const [serviceName, setServiceName] = useState('');
+  const [serviceName, setServiceName] = useState('OpenAI');
   const [apiKey, setApiKey] = useState('');
 
   const fetchKeys = async () => {
@@ -40,43 +40,25 @@ export default function AdminThirdPartyKeys() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar / Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800">Admin Portal</h2>
-        </div>
-        <nav className="flex-1 p-4 flex flex-col gap-2">
-          <Link href="/admin" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
-            Manage Licenses
-          </Link>
-          <Link href="/admin/third-party-keys" className="px-4 py-2 bg-green-50 text-green-700 rounded-lg transition-colors font-medium">
-            Third-Party API Keys
-          </Link>
-          <Link href="/admin/docs" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
-            Developer API Docs
-          </Link>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Manage Third-Party API Keys</h1>
-        
-        {/* Add New Key Form */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Add New Key</h2>
-          <form onSubmit={addKey} className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Service Name (e.g. OpenAI)</label>
-              <input 
-                type="text" 
-                value={serviceName}
-                onChange={(e) => setServiceName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-green-500 focus:border-green-500" 
-                required 
-              />
-            </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Manage Third-Party API Keys</h1>
+      
+      {/* Add New Key Form */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Add New Key</h2>
+        <form onSubmit={addKey} className="flex gap-4 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+            <select
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-green-500 focus:border-green-500" 
+              required 
+            >
+              <option value="OpenAI">OpenAI</option>
+              <option value="GeminiAi">GeminiAi</option>
+            </select>
+          </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
               <input 
@@ -129,7 +111,6 @@ export default function AdminThirdPartyKeys() {
               )}
             </tbody>
           </table>
-        </div>
       </div>
     </div>
   );

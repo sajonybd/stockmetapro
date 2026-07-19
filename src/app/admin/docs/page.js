@@ -3,27 +3,7 @@ import Link from 'next/link';
 
 export default function AdminDocsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar / Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col shrink-0">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800">Admin Portal</h2>
-        </div>
-        <nav className="flex-1 p-4 flex flex-col gap-2">
-          <Link href="/admin" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
-            Manage Licenses
-          </Link>
-          <Link href="/admin/third-party-keys" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
-            Third-Party API Keys
-          </Link>
-          <Link href="/admin/docs" className="px-4 py-2 bg-green-50 text-green-700 rounded-lg transition-colors font-medium">
-            Developer API Docs
-          </Link>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto">
+    <div className="p-8 max-w-4xl">
         <h1 className="text-3xl font-bold mb-4 text-gray-800">API Documentation</h1>
         <p className="text-lg text-gray-600 mb-8">Integration guide for developers working with the StockMetaPro licensing system.</p>
 
@@ -81,7 +61,6 @@ export default function AdminDocsPage() {
             <li><strong>Insufficient Credits:</strong> <code>&#123; "success": false, "message": "Insufficient credits" &#125;</code></li>
           </ul>
         </section>
-      </div>
     </div>
   );
 }
