@@ -2,11 +2,17 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import License from '@/models/License';
 
+import User from '@/models/User';
+
 // Check auth (can be handled by middleware, but good to ensure db connection)
 export async function GET() {
-  await connectToDatabase();
-  const licenses = await License.find().sort({ createdAt: -1 });
-  return NextResponse.json({ success: true, data: licenses });
+  try {
+    await connectToDatabase();
+    const licenses = await License.find().populate('userId', 'name email').sort({ createdAt: -1 });
+    return NextResponse.json({ success: true, data: licenses });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
 }
 
 export async function POST(request) {

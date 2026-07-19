@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -17,10 +18,12 @@ export default function Home() {
             <a href="#" className="text-gray-900 hover:text-green-600 transition-colors">Home</a>
             <a href="#features" className="hover:text-green-600 transition-colors">Features</a>
             <a href="#pricing" className="hover:text-green-600 transition-colors">Pricing</a>
-            <a href="/admin" className="hover:text-green-600 transition-colors">Log In</a>
-            <button className="bg-[#1f934b] text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors shadow-sm">
-              Subscribe
-            </button>
+            <a href="/login" className="hover:text-green-600 transition-colors">Log In</a>
+            <Link href="/register">
+              <button className="bg-[#1f934b] text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+                Subscribe
+              </button>
+            </Link>
           </nav>
         </div>
       </header>
@@ -40,12 +43,16 @@ export default function Home() {
               Create metadata instantly according to your preferred plan.
             </p>
             <div className="flex gap-4">
-              <button className="bg-[#4caf50] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-lg hover:shadow-green-500/30">
-                View Plans
-              </button>
-              <button className="bg-white text-gray-900 px-8 py-3.5 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-lg">
-                Start Free Trial
-              </button>
+              <Link href="/register">
+                <button className="bg-[#4caf50] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-lg hover:shadow-green-500/30">
+                  View Plans
+                </button>
+              </Link>
+              <Link href="/register">
+                <button className="bg-white text-gray-900 px-8 py-3.5 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-lg">
+                  Start Free Trial
+                </button>
+              </Link>
             </div>
           </div>
           <div className="md:w-1/2 relative">
@@ -170,23 +177,25 @@ export default function Home() {
         <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
           Get a 14-day free trial and experience our service.
         </p>
-        <button className="bg-[#1f934b] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">
-          Start Free Trial
-        </button>
+        <Link href="/register">
+          <button className="bg-[#1f934b] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">
+            Start Free Trial
+          </button>
+        </Link>
       </section>
 
       {/* Footer */}
       <footer className="bg-white py-8 border-t border-gray-200 text-gray-500 text-sm">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© 2024 StockMetaPro. All rights reserved.</p>
-          <div className="flex items-center gap-6 font-medium">
+          <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#" className="hover:text-green-600 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-green-600 transition-colors">Terms & Conditions</a>
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center cursor-pointer hover:bg-blue-700">f</div>
-              <div className="w-8 h-8 rounded-full bg-blue-400 text-white flex items-center justify-center cursor-pointer hover:bg-blue-500">t</div>
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center cursor-pointer hover:bg-blue-600">in</div>
-            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center cursor-pointer hover:bg-blue-700">f</div>
+            <div className="w-8 h-8 rounded-full bg-blue-400 text-white flex items-center justify-center cursor-pointer hover:bg-blue-500">t</div>
+            <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center cursor-pointer hover:bg-blue-600">in</div>
           </div>
         </div>
       </footer>

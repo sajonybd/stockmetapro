@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminPage() {
   const [keys, setKeys] = useState([]);
   const [credit, setCredit] = useState(100);
   const [duration, setDuration] = useState(30);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const fetchKeys = async () => {
     const res = await fetch('/api/admin/keys');
@@ -41,19 +44,43 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = () => {
+    document.cookie = "admin_session=; path=/; max-age=0";
+    router.push('/login');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar / Navigation */}
+      <div className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col shrink-0">
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800">Admin Portal</h2>
+        </div>
+        <nav className="flex-1 p-4 flex flex-col gap-2">
+          <Link href="/admin" className="px-4 py-2 bg-green-50 text-green-700 rounded-lg transition-colors font-medium">
+            Manage Licenses
+          </Link>
+          <Link href="/admin/third-party-keys" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
+            Third-Party API Keys
+          </Link>
+          <Link href="/admin/docs" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
+            Developer API Docs
+          </Link>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8 overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Portal - License Management</h1>
+          <h1 className="text-2xl font-bold text-gray-800">License Management</h1>
           <button 
-            onClick={() => { document.cookie = "admin_session=; path=/; max-age=0"; window.location.href = '/login'; }}
-            className="text-gray-500 hover:text-red-600 font-medium"
+            onClick={handleLogout}
+            className="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors"
           >
             Logout
           </button>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">Generate New License Key</h2>
           <form onSubmit={generateKey} className="flex gap-4 items-end">
@@ -63,7 +90,7 @@ export default function AdminPage() {
                 type="number" 
                 value={credit}
                 onChange={(e) => setCredit(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-green-500 focus:border-green-500" 
                 required 
               />
             </div>
@@ -72,7 +99,7 @@ export default function AdminPage() {
               <select 
                 value={duration} 
                 onChange={(e) => setDuration(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-green-500 focus:border-green-500"
               >
                 <option value={30}>1 Month (30 Days)</option>
                 <option value={90}>3 Months (90 Days)</option>
@@ -115,7 +142,9 @@ export default function AdminPage() {
                       {key.status}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-500 text-sm">{key.pc_build_number || 'Unbound'}</td>
+                  <td className="p-4 text-gray-500 text-sm">
+                    {key.userId ? <span className="text-blue-600 font-medium">User: {key.userId.name}</span> : (key.pc_build_number || 'Unbound/Admin')}
+                  </td>
                   <td className="p-4 text-right">
                     <button 
                       onClick={() => deleteKey(key._id)}

@@ -10,6 +10,10 @@ const LicenseSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  credits_used: {
+    type: Number,
+    default: 0,
+  },
   expire_date: {
     type: Date,
     required: true,
@@ -22,6 +26,11 @@ const LicenseSchema = new mongoose.Schema({
     type: String,
     enum: ['Active', 'Expired', 'Revoked'],
     default: 'Active',
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null, // Null for admin-generated keys without a user
   },
   createdAt: {
     type: Date,
