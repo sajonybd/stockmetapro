@@ -11,6 +11,17 @@ export default function DashboardPage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [pwdMsg, setPwdMsg] = useState('');
+
+  // Checkout Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPkg, setSelectedPkg] = useState(null);
+  const [checkoutType, setCheckoutType] = useState('new');
+  const [selectedLicenseId, setSelectedLicenseId] = useState('');
+  const [name, setName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('bKash');
+  const [trxId, setTrxId] = useState('');
   const router = useRouter();
 
   const fetchUserData = async () => {
@@ -19,6 +30,8 @@ export default function DashboardPage() {
       const data = await res.json();
       setUser(data.user);
       setLicenses(data.licenses);
+      setName(data.user.name || '');
+      setEmail(data.user.email || '');
     } else {
       router.push('/login');
     }
@@ -34,17 +47,34 @@ export default function DashboardPage() {
       });
   }, []);
 
-  const handleSubscribe = async (packageId) => {
-    if (!confirm('Are you sure you want to purchase this subscription?')) return;
+  const handleSubscribeClick = (pkg) => {
+    setSelectedPkg(pkg);
+    setShowModal(true);
+  };
+
+  const submitPurchase = async (e) => {
+    e.preventDefault();
     setSubscribing(true);
-    const res = await fetch('/api/user/subscribe', {
+    const res = await fetch('/api/user/purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packageId }),
+      body: JSON.stringify({ 
+        packageId: selectedPkg._id,
+        licenseId: checkoutType === 'renew' ? selectedLicenseId : null,
+        name,
+        email,
+        mobile,
+        payment_method: paymentMethod,
+        trx_id: trxId
+      }),
     });
     if (res.ok) {
-      alert(`Successfully purchased subscription!`);
-      fetchUserData();
+      alert(`Payment request submitted successfully! Your license will be updated once the admin approves it.`);
+      setShowModal(false);
+      setTrxId('');
+    } else {
+      const errorData = await res.json();
+      alert(`Error: ${errorData.message}`);
     }
     setSubscribing(false);
   };
@@ -149,11 +179,10 @@ export default function DashboardPage() {
               <p className="text-3xl font-bold text-[#1f934b] mb-2">৳{pkg.price_tk}</p>
               <p className="text-sm text-gray-600 mb-6 font-medium">{pkg.credit_limit} Credits / {pkg.duration_days} Days</p>
               <button 
-                onClick={() => handleSubscribe(pkg._id)} 
-                disabled={subscribing} 
+                onClick={() => handleSubscribeClick(pkg)} 
                 className={`w-full py-2 text-white rounded-lg transition-colors font-medium ${pkg.is_popular ? 'bg-[#1f934b] hover:bg-green-700' : 'bg-gray-800 hover:bg-gray-900'}`}
               >
-                {subscribing ? 'Processing...' : 'Purchase'}
+                Purchase
               </button>
             </div>
           ))}
@@ -164,6 +193,79 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Checkout Modal */}
+      {showModal && selectedPkg && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Checkout: {selectedPkg.name}</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 font-bold">&times;</button>
+            </div>
+            <div className="p-6">
+              <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-100 text-green-800">
+                <p className="font-semibold text-lg mb-1">Please pay ৳{selectedPkg.price_tk}</p>
+                <p className="text-sm">Send Money to: <strong className="font-bold">01967550181</strong> (bKash / Rocket / Nagad Personal)</p>
+              </div>
+              
+              <form onSubmit={submitPurchase} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Type</label>
+                  <select value={checkoutType} onChange={e => setCheckoutType(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="new">Generate New License Key</option>
+                    <option value="renew">Renew Existing License Key</option>
+                  </select>
+                </div>
+                
+                {checkoutType === 'renew' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select License to Renew</label>
+                    <select value={selectedLicenseId} onChange={e => setSelectedLicenseId(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                      <option value="" disabled>Select a license...</option>
+                      {licenses.map(lic => <option key={lic._id} value={lic._id}>{lic.api_key} ({lic.status})</option>)}
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile No</label>
+                    <input type="text" value={mobile} onChange={e => setMobile(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                      <option value="bKash">bKash</option>
+                      <option value="Nagad">Nagad</option>
+                      <option value="Rocket">Rocket</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID (TrxID)</label>
+                    <input type="text" value={trxId} onChange={e => setTrxId(e.target.value)} required className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                  </div>
+                </div>
+                
+                <button type="submit" disabled={subscribing} className="w-full bg-[#1f934b] text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors mt-4">
+                  {subscribing ? 'Submitting...' : 'Submit Payment Info'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
