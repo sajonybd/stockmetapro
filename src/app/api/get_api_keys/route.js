@@ -50,9 +50,12 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       keys: [license.api_key],
-      credit: license.credit_limit,
+      credit_limit: license.credit_limit,
+      credits_used: license.credits_used || 0,
+      credits_remaining: license.credit_limit - (license.credits_used || 0),
+      duration_days: license.duration_days,
+      activation_date: license.activation_date,
       expire_date: license.expire_date,
-      activation_date: license.createdAt,
     });
   } catch (error) {
     console.error('API Error:', error);

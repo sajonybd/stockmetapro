@@ -34,10 +34,31 @@ export default function AdminDocsPage() {
 &#125;
           </pre>
           <h3 className="font-semibold mb-2 text-gray-800">Expected Responses:</h3>
-          <ul className="list-disc pl-6 space-y-2 text-gray-600">
-            <li><strong>Valid:</strong> <code>&#123; "success": true, "keys": [&#123; "service_name": "OpenAI", "api_key": "sk-..." &#125;] &#125;</code></li>
-            <li><strong>Invalid:</strong> <code>&#123; "success": false, "message": "Credit limit reached" &#125;</code></li>
-          </ul>
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-700 mb-1">Valid License:</p>
+            <pre className="bg-gray-800 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
+{`{
+  "success": true,
+  "keys": ["YOUR_KEY"],
+  "credit_limit": 1000,
+  "credits_used": 150,
+  "credits_remaining": 850,
+  "duration_days": 30,
+  "activation_date": "2026-07-20T10:15:00.000Z",
+  "expire_date": "2026-08-19T10:15:00.000Z"
+}`}
+            </pre>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Invalid or Expired License:</p>
+            <pre className="bg-gray-800 text-red-400 p-4 rounded-lg overflow-x-auto text-sm">
+{`{
+  "success": false,
+  "keys": [],
+  "message": "License expired or revoked"
+}`}
+            </pre>
+          </div>
         </section>
 
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
