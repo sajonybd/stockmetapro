@@ -20,6 +20,17 @@ export async function GET(request) {
       return NextResponse.json({ success: false, keys: [], message: 'Invalid license key' });
     }
 
+    // Activation Logic: If not activated, activate it now!
+    if (!license.activation_date) {
+      license.activation_date = new Date();
+      
+      const newExpireDate = new Date();
+      newExpireDate.setDate(newExpireDate.getDate() + license.duration_days);
+      license.expire_date = newExpireDate;
+      
+      await license.save();
+    }
+
     // Check expiration
     if (new Date() > license.expire_date || license.status !== 'Active') {
       return NextResponse.json({ success: false, keys: [], message: 'License expired or revoked' });

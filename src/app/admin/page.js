@@ -102,10 +102,12 @@ export default function AdminPage() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 font-semibold text-gray-600">API Key</th>
-                <th className="p-4 font-semibold text-gray-600">Credit Limit</th>
-                <th className="p-4 font-semibold text-gray-600">Expiration Date</th>
+                <th className="p-4 font-semibold text-gray-600">Credits</th>
+                <th className="p-4 font-semibold text-gray-600">Created</th>
+                <th className="p-4 font-semibold text-gray-600">Activated</th>
+                <th className="p-4 font-semibold text-gray-600">Expires</th>
                 <th className="p-4 font-semibold text-gray-600">Status</th>
-                <th className="p-4 font-semibold text-gray-600">PC Build No.</th>
+                <th className="p-4 font-semibold text-gray-600">Owner / PC</th>
                 <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
               </tr>
             </thead>
@@ -113,8 +115,10 @@ export default function AdminPage() {
               {keys.map((key) => (
                 <tr key={key._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="p-4 font-mono text-sm text-gray-800">{key.api_key}</td>
-                  <td className="p-4 text-gray-700">{key.credit_limit}</td>
-                  <td className="p-4 text-gray-700">{new Date(key.expire_date).toLocaleDateString()}</td>
+                  <td className="p-4 text-gray-700">{key.credits_used || 0} / {key.credit_limit}</td>
+                  <td className="p-4 text-gray-700">{new Date(key.createdAt).toLocaleDateString()}</td>
+                  <td className="p-4 font-medium">{key.activation_date ? new Date(key.activation_date).toLocaleDateString() : <span className="text-blue-600">Pending</span>}</td>
+                  <td className="p-4 font-medium">{key.expire_date ? new Date(key.expire_date).toLocaleDateString() : <span className="text-gray-400">N/A</span>}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       key.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -137,7 +141,7 @@ export default function AdminPage() {
               ))}
               {keys.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-gray-500">No keys generated yet.</td>
+                  <td colSpan="8" className="p-8 text-center text-gray-500">No keys generated yet.</td>
                 </tr>
               )}
             </tbody>

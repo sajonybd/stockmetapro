@@ -19,13 +19,10 @@ export async function POST(request) {
     await connectToDatabase();
 
     const api_key = 'SK-' + Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
-    const expire_date = new Date();
-    expire_date.setDate(expire_date.getDate() + 30); // 1 month subscription
-
     const newLicense = await License.create({
       api_key,
       credit_limit,
-      expire_date,
+      duration_days: 30, // 1 month subscription
       userId,
     });
 

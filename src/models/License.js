@@ -14,9 +14,17 @@ const LicenseSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  duration_days: {
+    type: Number,
+    required: true,
+  },
+  activation_date: {
+    type: Date,
+    default: null,
+  },
   expire_date: {
     type: Date,
-    required: true,
+    default: null,
   },
   pc_build_number: {
     type: String,

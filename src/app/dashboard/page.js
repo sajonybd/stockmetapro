@@ -86,8 +86,9 @@ export default function DashboardPage() {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 text-gray-600 font-semibold">API Key</th>
                 <th className="p-4 text-gray-600 font-semibold">Credits Used</th>
-                <th className="p-4 text-gray-600 font-semibold">Credit Limit</th>
-                <th className="p-4 text-gray-600 font-semibold">Expiration Date</th>
+                <th className="p-4 text-gray-600 font-semibold">Created</th>
+                <th className="p-4 text-gray-600 font-semibold">Activated</th>
+                <th className="p-4 text-gray-600 font-semibold">Expires</th>
                 <th className="p-4 text-gray-600 font-semibold">Status</th>
               </tr>
             </thead>
@@ -95,9 +96,10 @@ export default function DashboardPage() {
               {licenses.map(lic => (
                 <tr key={lic._id} className="border-b border-gray-50">
                   <td className="p-4 font-mono text-sm">{lic.api_key}</td>
-                  <td className="p-4 font-semibold text-gray-700">{lic.credits_used}</td>
-                  <td className="p-4">{lic.credit_limit}</td>
-                  <td className="p-4">{new Date(lic.expire_date).toLocaleDateString()}</td>
+                  <td className="p-4 font-semibold text-gray-700">{lic.credits_used} / {lic.credit_limit}</td>
+                  <td className="p-4 text-gray-600">{new Date(lic.createdAt).toLocaleDateString()}</td>
+                  <td className="p-4 font-medium">{lic.activation_date ? new Date(lic.activation_date).toLocaleDateString() : <span className="text-blue-600">Pending Activation</span>}</td>
+                  <td className="p-4 font-medium">{lic.expire_date ? new Date(lic.expire_date).toLocaleDateString() : <span className="text-gray-400">N/A</span>}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${lic.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {lic.status}

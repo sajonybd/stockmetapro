@@ -28,13 +28,10 @@ export async function POST(request) {
     // Generate random string key
     const api_key = 'SK-' + Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
     
-    const expire_date = new Date();
-    expire_date.setDate(expire_date.getDate() + parseInt(duration_days, 10));
-
     const newLicense = await License.create({
       api_key,
       credit_limit: parseInt(credit_limit, 10),
-      expire_date,
+      duration_days: parseInt(duration_days, 10),
     });
 
     return NextResponse.json({ success: true, data: newLicense });
