@@ -25,6 +25,9 @@ export default async function AdminLayout({ children }) {
           <Link href="/admin/third-party-keys" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
             Third-Party API Keys
           </Link>
+          <Link href="/admin/notice" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
+            Software Notice
+          </Link>
           <Link href="/admin/docs" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
             Developer API Docs
           </Link>
