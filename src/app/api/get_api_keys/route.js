@@ -41,6 +41,7 @@ export async function GET(request) {
       keys: [license.api_key],
       credit: license.credit_limit,
       expire_date: license.expire_date,
+      activation_date: license.createdAt,
     });
   } catch (error) {
     console.error('API Error:', error);
