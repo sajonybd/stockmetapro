@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import License from '@/models/License';
 
+import Package from '@/models/Package';
+
 export async function POST(request) {
   const userId = request.cookies.get('user_session')?.value;
   
@@ -10,19 +12,20 @@ export async function POST(request) {
   }
 
   try {
-    const { plan } = await request.json(); // 'basic', 'premium', 'pro'
-
-    let credit_limit = 1000;
-    if (plan === 'premium') credit_limit = 5000;
-    if (plan === 'pro') credit_limit = 999999;
+    const { packageId } = await request.json();
 
     await connectToDatabase();
+
+    const selectedPackage = await Package.findById(packageId);
+    if (!selectedPackage) {
+      return NextResponse.json({ success: false, message: 'Invalid package selected' }, { status: 400 });
+    }
 
     const api_key = 'SK-' + Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase();
     const newLicense = await License.create({
       api_key,
-      credit_limit,
-      duration_days: 30, // 1 month subscription
+      credit_limit: selectedPackage.credit_limit,
+      duration_days: selectedPackage.duration_days,
       userId,
     });
 

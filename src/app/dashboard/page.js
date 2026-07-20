@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [licenses, setLicenses] = useState([]);
+  const [availablePackages, setAvailablePackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
@@ -26,17 +27,23 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchUserData();
+    fetch('/api/packages')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setAvailablePackages(data.data);
+      });
   }, []);
 
-  const handleSubscribe = async (plan) => {
+  const handleSubscribe = async (packageId) => {
+    if (!confirm('Are you sure you want to purchase this subscription?')) return;
     setSubscribing(true);
     const res = await fetch('/api/user/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ packageId }),
     });
     if (res.ok) {
-      alert(`Successfully subscribed to ${plan} plan!`);
+      alert(`Successfully purchased subscription!`);
       fetchUserData();
     }
     setSubscribing(false);
@@ -135,22 +142,26 @@ export default function DashboardPage() {
 
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Purchase New Subscription</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-            <h3 className="text-lg font-bold mb-2">Basic Plan</h3>
-            <p className="text-3xl font-bold text-green-600 mb-4">$5<span className="text-sm text-gray-500">/mo</span></p>
-            <button onClick={() => handleSubscribe('basic')} disabled={subscribing} className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Purchase Basic</button>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border-2 border-blue-600 text-center relative">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">POPULAR</span>
-            <h3 className="text-lg font-bold mb-2">Premium Plan</h3>
-            <p className="text-3xl font-bold text-blue-600 mb-4">$15<span className="text-sm text-gray-500">/mo</span></p>
-            <button onClick={() => handleSubscribe('premium')} disabled={subscribing} className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Purchase Premium</button>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-            <h3 className="text-lg font-bold mb-2">Pro Plan</h3>
-            <p className="text-3xl font-bold text-green-600 mb-4">$30<span className="text-sm text-gray-500">/mo</span></p>
-            <button onClick={() => handleSubscribe('pro')} disabled={subscribing} className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Purchase Pro</button>
-          </div>
+          {availablePackages.map(pkg => (
+            <div key={pkg._id} className={`bg-white p-6 rounded-xl shadow-sm border-2 text-center relative ${pkg.is_popular ? 'border-[#1f934b]' : 'border-gray-100'}`}>
+              {pkg.is_popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1f934b] text-white text-xs px-3 py-1 rounded-full font-medium">POPULAR</span>}
+              <h3 className="text-xl font-bold mb-2 text-gray-800">{pkg.name}</h3>
+              <p className="text-3xl font-bold text-[#1f934b] mb-2">৳{pkg.price_tk}</p>
+              <p className="text-sm text-gray-600 mb-6 font-medium">{pkg.credit_limit} Credits / {pkg.duration_days} Days</p>
+              <button 
+                onClick={() => handleSubscribe(pkg._id)} 
+                disabled={subscribing} 
+                className={`w-full py-2 text-white rounded-lg transition-colors font-medium ${pkg.is_popular ? 'bg-[#1f934b] hover:bg-green-700' : 'bg-gray-800 hover:bg-gray-900'}`}
+              >
+                {subscribing ? 'Processing...' : 'Purchase'}
+              </button>
+            </div>
+          ))}
+          {availablePackages.length === 0 && (
+            <div className="col-span-3 p-8 text-center text-gray-500 bg-white rounded-xl border border-gray-100">
+              No subscription packages available at the moment.
+            </div>
+          )}
         </div>
       </main>
     </div>
