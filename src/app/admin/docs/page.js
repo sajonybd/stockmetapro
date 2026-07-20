@@ -61,6 +61,26 @@ export default function AdminDocsPage() {
             <li><strong>Insufficient Credits:</strong> <code>&#123; "success": false, "message": "Insufficient credits" &#125;</code></li>
           </ul>
         </section>
+
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+          <h2 className="text-xl font-bold mb-4 text-[#1f934b] border-b pb-2">4. Fetch Software Notice</h2>
+          <p className="mb-4 text-gray-700">Fetch the global software notice securely using the license key. Returns the message only if the notice is enabled.</p>
+          <div className="bg-gray-900 rounded-lg p-4 mb-4 text-sm text-gray-200 overflow-x-auto">
+            <code className="text-blue-400 font-bold">POST</code> https://stockmetapro.com/api/software/get_notice
+          </div>
+          <h3 className="font-semibold mb-2 text-gray-800">JSON Body:</h3>
+          <pre className="bg-gray-100 p-4 rounded-lg text-sm mb-4 text-gray-800">
+&#123;
+  "license_key": "YOUR_KEY",
+  "pc_build_number": "PC_ID"
+&#125;
+          </pre>
+          <h3 className="font-semibold mb-2 text-gray-800">Expected Responses:</h3>
+          <ul className="list-disc pl-6 space-y-2 text-gray-600">
+            <li><strong>Notice Available:</strong> <code>&#123; "success": true, "has_notice": true, "message": "Notice text" &#125;</code></li>
+            <li><strong>No Notice:</strong> <code>&#123; "success": true, "has_notice": false, "message": "" &#125;</code></li>
+          </ul>
+        </section>
     </div>
   );
 }
