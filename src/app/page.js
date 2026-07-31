@@ -7,8 +7,13 @@ export default function Home() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [purchaseFlow, setPurchaseFlow] = useState({ isOpen: false, step: '', plan: null });
   const [activeUserPhone, setActiveUserPhone] = useState('');
-
+  const [selectedMethod, setSelectedMethod] = useState('');
+  const [trxId, setTrxId] = useState('');
+  const [formData, setFormData] = useState({ name: '', email: '', mobile: '' });
   const [plans, setPlans] = useState([]);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [activeUserFound, setActiveUserFound] = useState(null);
+  const [verificationError, setVerificationError] = useState('');
 
   useEffect(() => {
     fetch('/api/packages')
@@ -21,38 +26,35 @@ export default function Home() {
       })
       .then(data => {
         if (data.success && data.data.length > 0) {
+          const regularPriceMap = { 'Pro': 150, 'Premium': 200, 'Max': 400 };
+          const durationMap = { 'Pro': '1 Month', 'Premium': '1 Month', 'Max': '2 Months' };
           const formattedPlans = data.data.map(pkg => ({
             name: pkg.name,
             price: pkg.price_tk,
-            regularPrice: pkg.price_tk + 50, // Simulated regular price
-            duration: `${pkg.duration_days} Days`,
+            regularPrice: regularPriceMap[pkg.name] || (pkg.price_tk + 50),
+            duration: durationMap[pkg.name] || `${pkg.duration_days} Days`,
             credits: pkg.credit_limit,
-            color: pkg.is_popular ? '#0c2e60' : (pkg.price_tk > 150 ? '#eab308' : '#4caf50'),
-            popular: pkg.is_popular
+            color: pkg.is_popular ? '#0c2e60' : (pkg.name === 'Max' ? '#eab308' : '#4caf50'),
+            popular: pkg.is_popular,
+            _id: pkg._id
           }));
           setPlans(formattedPlans);
         } else {
           setPlans([
-            { name: 'Pro', price: 100, regularPrice: 150, duration: '30 Days', credits: 1500, color: '#4caf50' },
-            { name: 'Premium', price: 150, regularPrice: 200, duration: '30 Days', credits: 2000, color: '#0c2e60', popular: true },
-            { name: 'Max', price: 300, regularPrice: 400, duration: '60 Days', credits: 4500, color: '#eab308' }
+            { name: 'Pro', price: 100, regularPrice: 150, duration: '1 Month', credits: 1500, color: '#4caf50' },
+            { name: 'Premium', price: 150, regularPrice: 200, duration: '1 Month', credits: 2000, color: '#0c2e60', popular: true },
+            { name: 'Max', price: 300, regularPrice: 400, duration: '2 Months', credits: 4500, color: '#eab308' }
           ]);
         }
       })
       .catch(() => {
         setPlans([
-          { name: 'Pro', price: 100, regularPrice: 150, duration: '30 Days', credits: 1500, color: '#4caf50' },
-          { name: 'Premium', price: 150, regularPrice: 200, duration: '30 Days', credits: 2000, color: '#0c2e60', popular: true },
-          { name: 'Max', price: 300, regularPrice: 400, duration: '60 Days', credits: 4500, color: '#eab308' }
+          { name: 'Pro', price: 100, regularPrice: 150, duration: '1 Month', credits: 1500, color: '#4caf50' },
+          { name: 'Premium', price: 150, regularPrice: 200, duration: '1 Month', credits: 2000, color: '#0c2e60', popular: true },
+          { name: 'Max', price: 300, regularPrice: 400, duration: '2 Months', credits: 4500, color: '#eab308' }
         ]);
       });
   }, []);
-
-  const commonFeatures = [
-    'AI-Powered Metadata Generation', 'No Personal API Required', 'One-Click Metadata Embedding',
-    'Images, Vectors & Videos Supported', 'SEO-Optimized Metadata', 'Batch File Processing',
-    'Secure File Processing', '24/7 Priority Support'
-  ];
 
   const handleSupportClick = (e) => {
     e.preventDefault();
@@ -61,9 +63,79 @@ export default function Home() {
 
   const handlePlanClick = (plan) => {
     setPurchaseFlow({ isOpen: true, step: 'select_user_type', plan });
+    setActiveUserPhone('');
+    setSelectedMethod('');
+    setTrxId('');
+    setSuccessMsg('');
+    setActiveUserFound(null);
+    setVerificationError('');
+    setFormData({ name: '', email: '', mobile: '' });
   };
 
-  const closePurchaseFlow = () => setPurchaseFlow({ isOpen: false, step: '', plan: null });
+  const closePurchaseFlow = () => {
+    setPurchaseFlow({ isOpen: false, step: '', plan: null });
+  };
+
+  const handleVerifyActiveUser = async () => {
+    if (!activeUserPhone.trim()) return;
+    setVerificationError('');
+    try {
+      const res = await fetch('/api/renew/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: activeUserPhone })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActiveUserFound(data.data);
+        setPurchaseFlow({ ...purchaseFlow, step: 'active_user_details' });
+      } else {
+        setVerificationError(data.message || 'No registered user found with this number.');
+      }
+    } catch (err) {
+      setVerificationError('Error checking registered number. Please try again.');
+    }
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!selectedMethod) {
+      alert('Please select a payment method');
+      return;
+    }
+    if (!trxId.trim()) {
+      alert('Please enter Transaction ID');
+      return;
+    }
+
+    try {
+      const payload = {
+        name: purchaseFlow.step === 'new_user_form' ? formData.name : (activeUserFound?.userInfo?.name || 'Active User'),
+        email: purchaseFlow.step === 'new_user_form' ? formData.email : (activeUserFound?.userInfo?.email || ''),
+        mobile: purchaseFlow.step === 'new_user_form' ? formData.mobile : activeUserPhone,
+        packageId: purchaseFlow.plan._id,
+        payment_method: selectedMethod,
+        trx_id: trxId,
+        amount: purchaseFlow.plan.price,
+        licenseId: purchaseFlow.step === 'active_user_details' ? activeUserFound?.licenseKey : null
+      };
+
+      const res = await fetch('/api/user/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setSuccessMsg('Your payment was submitted successfully and is pending approval! Once verified, we will send an email with your license details.');
+        setPurchaseFlow({ ...purchaseFlow, step: 'payment_success' });
+      } else {
+        alert(data.message || 'Payment submission failed.');
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen font-sans bg-gray-50 text-gray-800">
@@ -71,9 +143,7 @@ export default function Home() {
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 3h2v18H3V3zm4 10h2v8H7v-8zm4-5h2v13h-2V8zm4 7h2v6h-2v-6zm4-9h2v15h-2V6z" />
-            </svg>
+            <img src="/images/icons/website-Icon.png" alt="StockMetaPro Icon" className="w-8 h-8 object-contain" />
             <span className="text-2xl font-bold text-gray-800 tracking-tight">StockMeta<span className="text-green-600">Pro</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 font-medium text-gray-600">
@@ -109,13 +179,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-gray-50 relative z-20 -mt-10">
+      {/* Pricing Section - Moved Top */}
+      <section id="pricing" className="py-20 bg-gray-50 relative z-20 -mt-8">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-[#1c3f6e] mb-16">Our Pricing Plan</h2>
+          <h2 className="text-4xl font-bold text-center text-[#1c3f6e] mb-14">Our Pricing Plan</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {plans.map((plan, idx) => (
-              <div key={idx} className={`bg-white border ${plan.popular ? 'border-2 border-[#0c2e60] shadow-xl md:-translate-y-4' : 'border-gray-100 shadow-lg'} rounded-2xl p-8 text-center relative flex flex-col`}>
+              <div key={idx} className={`bg-white border ${plan.popular ? 'border-2 border-[#0c2e60] shadow-xl md:-translate-y-3' : 'border-gray-100 shadow-lg'} rounded-2xl p-8 text-center relative flex flex-col`}>
                 {plan.popular && (
                   <div className="absolute top-0 left-0 right-0 bg-[#0c2e60] text-white text-center py-2 rounded-t-xl text-sm font-bold tracking-wider uppercase -mt-px -mx-px">
                     Popular
@@ -136,17 +206,29 @@ export default function Home() {
                     <p className="text-xs text-gray-500 font-normal mt-1">1 Credit = 1 Generation</p>
                   </div>
                   
-                  <ul className="space-y-3 mb-8 text-left text-sm text-gray-600 flex-1">
-                    {commonFeatures.map((feat, i) => (
+                  <ul className="space-y-2.5 mb-8 text-left text-sm text-gray-600 flex-1">
+                    {[
+                      'AI-Powered Metadata Generation',
+                      'No Personal API Required',
+                      'One-Click Metadata Embedding',
+                      'Images, Vectors & Videos Supported',
+                      'SEO-Optimized Metadata',
+                      'Batch File Processing',
+                      'SEO-Friendly File Renaming',
+                      'Clean & User-Friendly Interface',
+                      'Regular Feature Updates',
+                      'Secure File Processing',
+                      '24/7 Priority Support'
+                    ].map((feat, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <svg className="w-5 h-5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg> 
+                        <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg> 
                         {feat}
                       </li>
                     ))}
                   </ul>
                   <button 
                     onClick={() => handlePlanClick(plan)}
-                    className="w-full text-white py-3 rounded-lg font-semibold transition-colors mt-auto shadow-md"
+                    className="w-full text-white py-3 rounded-lg font-semibold transition-colors mt-auto shadow-md hover:opacity-90"
                     style={{ backgroundColor: plan.color }}
                   >
                     Get {plan.name} Plan
@@ -161,49 +243,48 @@ export default function Home() {
       {/* Features Section */}
       <section id="features" className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-           <h2 className="text-4xl font-bold text-center text-[#1c3f6e] mb-16">Key Features</h2>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+          <h2 className="text-4xl font-bold text-center text-[#1c3f6e] mb-16">Key Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {[
               { 
                 title: 'AI Metadata Generation', 
                 desc: 'Generate accurate titles, keywords, and descriptions for your images, videos, PNGs, and vectors in just a few seconds using AI.',
-                icon: '/images/icons/AI_Metadata_Generation_icon.png'
+                icon: '/images/icons/AI Metadata Generation icon.png'
               },
               { 
                 title: 'SEO-Optimized Keywords', 
                 desc: 'Get relevant and SEO-friendly keywords that help your files rank higher and reach more buyers on stock marketplaces.',
-                icon: '/images/icons/SEO_Optimized_Keywords_Icon.png'
+                icon: '/images/icons/SEO Optimized Keywords Icon.png'
               },
               { 
                 title: 'Auto Metadata Embedding', 
                 desc: 'Embed metadata automatically and upload to your target stock marketplace.',
-                icon: '/images/icons/Auto_Metadata_Embedding_Icon.png',
+                icon: '/images/icons/Auto Metadata Embedding Icon.png',
                 badge: 'Max'
               },
               { 
                 title: 'Stock Marketplace Optimized', 
                 desc: 'Metadata is optimized for Adobe Stock, Shutterstock, Magnific, Vecteezy, and other popular stock platforms.',
-                icon: '/images/icons/Stock_Marketplace_Optimized_Icon.png'
+                icon: '/images/icons/Stock Marketplace Optimized Icon.png'
               },
               { 
                 title: 'Batch Processing', 
                 desc: 'Generate metadata for multiple files at the same time, saving hours of manual work and increasing your productivity.',
-                icon: '/images/icons/Batch_Processing_Icon.png'
+                icon: '/images/icons/Batch Processing Icon.png'
               },
               { 
                 title: 'Secure File Processing', 
                 desc: 'Your files are processed securely and kept private throughout the entire SEO process. Your creative assets and content idea always stay protected.',
-                icon: '/images/icons/Secure_File_Processsing_Icon.png'
+                icon: '/images/icons/Secure File Processsing Icon.png'
               }
             ].map((feature, i) => (
-              <div key={i} className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md text-center group transition-all relative">
+              <div key={i} className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md text-center group transition-all relative border border-gray-100">
                 {feature.badge && (
                   <div className="absolute top-4 right-4 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                     {feature.badge}
                   </div>
                 )}
                 <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center p-2">
-                  {/* Since icons were copied, we use img tag. Fallback if not loaded */}
                   <img src={feature.icon} alt={feature.title} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-3">{feature.title}</h3>
@@ -216,8 +297,8 @@ export default function Home() {
 
       {/* Bottom CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-900 to-indigo-900 text-white text-center">
-        <h2 className="text-3xl font-bold mb-4">Improve search rankings, attract more buyers & drive more downloads.</h2>
-        <p className="text-xl text-blue-200 mb-10 max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold mb-4 px-4">Improve search rankings, attract more buyers & drive more downloads.</h2>
+        <p className="text-xl text-blue-200 mb-10 max-w-2xl mx-auto px-4">
           Fast, Easy & Effective – Perfect for Microstock Contributors.
         </p>
         <a href="#pricing">
@@ -232,13 +313,14 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <span className="text-xl font-bold text-white tracking-tight block mb-2">StockMeta<span className="text-green-500">Pro</span></span>
-            <a href="mailto:support@stockmetapro.com" className="hover:text-white transition-colors block">support@stockmetapro.com</a>
+            <a href="mailto:support@stockmetapro.com" className="hover:text-white transition-colors block font-medium">support@stockmetapro.com</a>
           </div>
           <div className="flex gap-6">
+            <Link href="/about" className="hover:text-white transition-colors">About Us</Link>
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms & Conditions</a>
           </div>
-          <p>© 2024 StockMetaPro. All rights reserved.</p>
+          <p>© 2026 StockMetaPro. All rights reserved.</p>
         </div>
       </footer>
 
@@ -247,21 +329,25 @@ export default function Home() {
       {/* Support Modal */}
       {isSupportOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center relative">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center relative border border-gray-100">
             <button onClick={() => setIsSupportOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Support</h3>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-6 justify-center">
               <a href="https://wa.me/1234567890" target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 group">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                  <span className="text-green-600 font-bold group-hover:text-white text-2xl">WA</span>
+                  <svg className="w-8 h-8 text-green-600 group-hover:text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6-1.155 3.468-1.745 5.411-1.743 5.467.002 9.914 4.453 9.918 9.923.002 2.65-1.01 5.143-2.85 7.003-1.84 1.862-4.29 2.887-6.892 2.887-5.469 0-9.915-4.453-9.919-9.924-.002-1.854.509-3.667 1.481-5.247l-.97-3.548 3.633.95z"/>
+                  </svg>
                 </div>
                 <span className="text-sm font-medium text-gray-600">WhatsApp</span>
               </a>
               <a href="https://facebook.com" target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 group">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                  <span className="text-blue-600 font-bold group-hover:text-white text-2xl">FB</span>
+                  <svg className="w-8 h-8 text-blue-600 group-hover:text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
                 </div>
                 <span className="text-sm font-medium text-gray-600">Facebook</span>
               </a>
@@ -273,7 +359,7 @@ export default function Home() {
       {/* Purchase Flow Popups */}
       {purchaseFlow.isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl relative border border-gray-100">
             <button onClick={closePurchaseFlow} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -284,17 +370,17 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setPurchaseFlow({ ...purchaseFlow, step: 'new_user_form' })}
-                    className="p-6 border-2 border-gray-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3"
+                    className="p-6 border-2 border-gray-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 group"
                   >
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">N</div>
-                    <span className="font-semibold text-gray-700">New User</span>
+                    <img src="/images/icons/New User Icon.png" alt="New User" className="w-12 h-12 object-contain" />
+                    <span className="font-semibold text-gray-700 group-hover:text-blue-900">New User</span>
                   </button>
                   <button 
                     onClick={() => setPurchaseFlow({ ...purchaseFlow, step: 'active_user_verify' })}
-                    className="p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all flex flex-col items-center gap-3"
+                    className="p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all flex flex-col items-center gap-3 group"
                   >
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">A</div>
-                    <span className="font-semibold text-gray-700">Active User</span>
+                    <img src="/images/icons/Active User Icon.png" alt="Active User" className="w-12 h-12 object-contain" />
+                    <span className="font-semibold text-gray-700 group-hover:text-green-900">Active User</span>
                   </button>
                 </div>
               </div>
@@ -311,8 +397,11 @@ export default function Home() {
                   value={activeUserPhone}
                   onChange={(e) => setActiveUserPhone(e.target.value)}
                 />
+                {verificationError && (
+                  <p className="text-red-500 text-xs mb-3">{verificationError}</p>
+                )}
                 <button 
-                  onClick={() => setPurchaseFlow({ ...purchaseFlow, step: 'active_user_details' })}
+                  onClick={handleVerifyActiveUser}
                   className="w-full bg-[#0c2e60] text-white py-3 rounded-lg font-bold hover:bg-blue-900 transition-colors"
                 >
                   Verify
@@ -323,18 +412,33 @@ export default function Home() {
             {purchaseFlow.step === 'active_user_details' && (
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">User Information</h3>
-                {/* Placeholder UI for Active User Details / Payment */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-6 text-sm text-gray-600 space-y-2">
-                   <p><strong>Name:</strong> John Doe</p>
+                   <p><strong>Name:</strong> {activeUserFound?.userInfo?.name || 'Registered Contributor'}</p>
                    <p><strong>Phone:</strong> {activeUserPhone}</p>
+                   <p><strong>Package To Renew:</strong> {purchaseFlow.plan.name} ({purchaseFlow.plan.price}৳)</p>
                 </div>
                 <h4 className="font-bold text-gray-800 mb-3">Select Payment Method</h4>
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <button className="py-2 border rounded hover:border-pink-500 font-medium">bKash</button>
-                  <button className="py-2 border rounded hover:border-purple-500 font-medium">Nagad</button>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {['bKash', 'Nagad', 'Rocket'].map((method) => (
+                    <button 
+                      key={method}
+                      onClick={() => setSelectedMethod(method)}
+                      className={`py-2 border rounded font-medium transition-all ${selectedMethod === method ? 'border-pink-500 bg-pink-50 text-pink-600' : 'border-gray-200'}`}
+                    >
+                      {method}
+                    </button>
+                  ))}
                 </div>
-                <input type="text" placeholder="Transaction ID" className="w-full px-4 py-3 border border-gray-200 rounded-lg mb-4"/>
-                <button onClick={closePurchaseFlow} className="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Confirm Payment</button>
+                <input 
+                  type="text" 
+                  placeholder="Transaction ID" 
+                  value={trxId}
+                  onChange={(e) => setTrxId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button onClick={handlePaymentSubmit} className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition-colors">
+                  Confirm Payment
+                </button>
               </div>
             )}
 
@@ -342,17 +446,61 @@ export default function Home() {
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Contributor Details</h3>
                 <div className="space-y-4 mb-6">
-                  <input type="text" placeholder="Full Name" className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <input type="email" placeholder="Email Address" className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                  <input type="tel" placeholder="Phone Number" className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input 
+                    type="text" 
+                    placeholder="Full Name" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  />
+                  <input 
+                    type="email" 
+                    placeholder="Email Address" 
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  />
+                  <input 
+                    type="tel" 
+                    placeholder="Phone Number" 
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  />
                 </div>
                 <h4 className="font-bold text-gray-800 mb-3">Select Payment Method</h4>
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <button className="py-2 border rounded hover:border-pink-500 font-medium text-pink-600">bKash</button>
-                  <button className="py-2 border rounded hover:border-purple-500 font-medium text-purple-600">Nagad</button>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {['bKash', 'Nagad', 'Rocket'].map((method) => (
+                    <button 
+                      key={method}
+                      onClick={() => setSelectedMethod(method)}
+                      className={`py-2 border rounded font-medium transition-all ${selectedMethod === method ? 'border-pink-500 bg-pink-50 text-pink-600' : 'border-gray-200'}`}
+                    >
+                      {method}
+                    </button>
+                  ))}
                 </div>
-                <input type="text" placeholder="Transaction ID" className="w-full px-4 py-3 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                <button onClick={closePurchaseFlow} className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600">Confirm Payment</button>
+                <input 
+                  type="text" 
+                  placeholder="Transaction ID" 
+                  value={trxId}
+                  onChange={(e) => setTrxId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button onClick={handlePaymentSubmit} className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition-colors">
+                  Confirm Payment
+                </button>
+              </div>
+            )}
+
+            {purchaseFlow.step === 'payment_success' && (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Payment Submitted</h3>
+                <p className="text-gray-600 text-sm mb-6">{successMsg}</p>
+                <button onClick={closePurchaseFlow} className="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold">Close</button>
               </div>
             )}
           </div>
