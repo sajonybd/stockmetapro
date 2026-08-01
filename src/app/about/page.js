@@ -7,7 +7,7 @@ export default function About() {
       <header className="bg-[#090514]/90 backdrop-blur-md border-b border-purple-950/20 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 cursor-pointer">
-            <img src="/images/icons/StockMetaProLogoo.png" alt="StockMetaPro Logo" className="h-14 w-auto object-contain" />
+            <img src="/images/icons/StockMetaProLogoo.png" alt="StockMetaPro Logo" className="w-auto object-contain" style={{ height: '57px' }} />
           </Link>
           <nav className="hidden md:flex items-center gap-8 font-medium text-purple-200">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
