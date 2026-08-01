@@ -107,11 +107,13 @@ export default function AdminThirdPartyKeys() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
+               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 text-gray-600 font-semibold">#</th>
                 <th className="p-4 text-gray-600 font-semibold">Service Name</th>
                 <th className="p-4 text-gray-600 font-semibold">API Key</th>
+                <th className="p-4 text-gray-600 font-semibold">Switch</th>
                 <th className="p-4 text-gray-600 font-semibold">Status</th>
+                <th className="p-4 text-gray-600 font-semibold">RPM</th>
                 <th className="p-4 text-gray-600 font-semibold text-right">Actions</th>
               </tr>
             </thead>
@@ -131,6 +133,16 @@ export default function AdminThirdPartyKeys() {
                       {key.is_active ? 'Active' : 'Inactive'}
                     </button>
                   </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${key.original_status === 'Live' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {key.original_status || 'Live'}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className={`font-mono text-sm font-semibold ${key.rpm_count >= 15 ? 'text-rose-500 font-bold animate-pulse' : 'text-gray-700'}`}>
+                      {key.rpm_count || 0} / 15
+                    </span>
+                  </td>
                   <td className="p-4 text-right">
                     <button 
                       onClick={() => testKey(key.service_name, key.api_key)}
@@ -148,7 +160,7 @@ export default function AdminThirdPartyKeys() {
                 </tr>
               ))}
               {keys.length === 0 && (
-                <tr><td colSpan="5" className="p-8 text-center text-gray-500">No third-party keys added yet.</td></tr>
+                <tr><td colSpan="7" className="p-8 text-center text-gray-500">No third-party keys added yet.</td></tr>
               )}
             </tbody>
           </table>

@@ -38,6 +38,30 @@ export async function POST(request) {
 
     await connectToDatabase();
     
+    // Automatic API Key Invalidation Trigger
+    const isApiKeyError = error_type.toLowerCase().includes('api') || 
+                           (message && (message.toLowerCase().includes('api_key') || 
+                                        message.toLowerCase().includes('api key') || 
+                                        message.toLowerCase().includes('invalid key') ||
+                                        message.toLowerCase().includes('key is invalid') ||
+                                        message.toLowerCase().includes('key not found') ||
+                                        message.toLowerCase().includes('api key expired') ||
+                                        message.toLowerCase().includes('deleted')));
+    if (isApiKeyError && message) {
+      // Find matches of key pattern like AIzaSy... (Gemini) or sk-... (OpenAI) inside error message
+      const keyPattern = /(AIzaSy[A-Za-z0-9_-]{33}|sk-[A-Za-z0-9]{32,})/i;
+      const matched = message.match(keyPattern);
+      if (matched && matched[0]) {
+        const foundKey = matched[0];
+        // Flag key in database as Invalid
+        const ThirdPartyKey = (await import('@/models/ThirdPartyKey')).default;
+        await ThirdPartyKey.updateOne(
+          { api_key: foundKey },
+          { $set: { original_status: 'Invalid' } }
+        );
+      }
+    }
+    
     const newErrorLog = await SoftwareError.create({
       license_key,
       pc_build_number,

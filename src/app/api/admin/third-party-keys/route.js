@@ -6,7 +6,27 @@ export async function GET() {
   try {
     await connectToDatabase();
     const keys = await ThirdPartyKey.find().sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, data: keys });
+    const now = new Date();
+    
+    // Dynamically evaluate and reset expired rpm intervals on the fly
+    const processedKeys = await Promise.all(keys.map(async (key) => {
+      if (now > new Date(key.reset_at)) {
+        key.rpm_count = 0;
+        // set next reset_at to the next full minute start boundary (e.g. 11:51:00)
+        const nextReset = new Date();
+        nextReset.setSeconds(0, 0);
+        nextReset.setMinutes(nextReset.getMinutes() + 1);
+        key.reset_at = nextReset;
+        
+        await ThirdPartyKey.updateOne(
+          { _id: key._id },
+          { $set: { rpm_count: 0, reset_at: nextReset } }
+        );
+      }
+      return key;
+    }));
+
+    return NextResponse.json({ success: true, data: processedKeys });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

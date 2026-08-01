@@ -28,9 +28,44 @@ export async function POST(request) {
     }
 
     // Fetch all active 3rd party keys
-    const thirdPartyKeys = await ThirdPartyKey.find({ is_active: true }).select('service_name api_key -_id');
+    const rawKeys = await ThirdPartyKey.find({ is_active: true });
+    const now = new Date();
+    const activeValidKeys = [];
 
-    return NextResponse.json({ success: true, keys: thirdPartyKeys });
+    for (const key of rawKeys) {
+      let currentRpm = key.rpm_count || 0;
+      let currentReset = new Date(key.reset_at);
+
+      // Check if minute reset boundary has been crossed
+      if (now > currentReset) {
+        currentRpm = 0;
+        const nextReset = new Date();
+        nextReset.setSeconds(0, 0);
+        nextReset.setMinutes(nextReset.getMinutes() + 1);
+        key.reset_at = nextReset;
+        key.rpm_count = 0;
+        
+        await ThirdPartyKey.updateOne(
+          { _id: key._id },
+          { $set: { rpm_count: 0, reset_at: nextReset } }
+        );
+      }
+
+      // Check limits: Only distribute key if it is Live and under 15 RPM
+      if (key.original_status === 'Live' && currentRpm < 15) {
+        // Increment RPM count for the distributed request key load
+        await ThirdPartyKey.updateOne(
+          { _id: key._id },
+          { $inc: { rpm_count: 1 } }
+        );
+        activeValidKeys.push({
+          service_name: key.service_name,
+          api_key: key.api_key
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true, keys: activeValidKeys });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
