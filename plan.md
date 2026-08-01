@@ -188,3 +188,34 @@ await License.updateMany(
 ## 5. Backward Compatibility Guarantee
 - Existing legacy APIs (such as `/api/get_api_keys`) will maintain their exact payload signatures.
 - Original Mongo fields (`api_key`, `credit_limit`, `credits_used`, `expire_date`) will remain intact to prevent breaking live desktop app installations.
+
+---
+
+## 6. Recent Design & Checkout Logic Updates
+The following updates have been successfully implemented and saved locally:
+1. **Brand Logo Update**:
+   - Integrated `StockMetaProLogoo.png` brand logo (height: `h-14`) inside the landing page and dark-themed About Us page headers.
+2. **Checkout Validation Logic**:
+   - Strict front-end input validation added to the customer registration/renewal form.
+   - Phone numbers must be at least 11 digits (excluding spaces/symbols).
+   - Emails must contain the `@` character.
+3. **Payment & Copy Details**:
+   - bKash Send Money target number corrected to `01980126826` (11 digits).
+   - Integrated clipboard-copy button with green checkmark animation (`✓` icon and "Number Copied!" text) visible for 2 seconds.
+4. **Why Choose Stock Meta Pro Section**:
+   - Added a center-aligned 4-grid feature list with custom icons, purple faded underline margins under titles, and a full-width horizontally faded blue gradient ribbon at the bottom.
+5. **Ready to Boost Your SEO Section**:
+   - Background set to dark violet theme (`#090514`).
+   - Title underlined with a perfectly proportioned faded purple glowing margin line.
+6. **Support Features**:
+   - Added custom Facebook support option with direct share URL: `https://www.facebook.com/share/19GMChfbpV/`.
+   - Enabled composing direct support mailto target windows dynamically.
+7. **Strict Field Validation**:
+   - Phone field validates for EXACTLY 11 digits. If invalid, applies a red border and reveals an animated "recheck number" badge.
+   - Payment method validation highlights the grid buttons in red and presents a "Select payment method" badge if Next is clicked without selection.
+   - Terms agreement validation enforces check state. If unchecked, the container displays a red border and a "you must agree" badge.
+8. **Payment Mock Checking & UI dialogs**:
+   - Payment success step completely redesigned with dynamic data display (Plan activation, Paid amount, Transaction ID).
+   - Invalid Transaction ID step displays a red triangle danger icon and routes back to the previous input step on OK click.
+   - Offline database fallback ensures testing is uninterrupted.
+   - Mock verification ID set to "TEST-TRX-12345". Validated credentials set to phone "01980126826" or key "TEST-KEY-12345".
