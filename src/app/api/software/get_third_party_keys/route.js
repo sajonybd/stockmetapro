@@ -30,7 +30,7 @@ export async function POST(request) {
     // Fetch all active 3rd party keys
     const rawKeys = await ThirdPartyKey.find({ is_active: true });
     const now = new Date();
-    const activeValidKeys = [];
+    const evaluatedKeys = [];
 
     for (const key of rawKeys) {
       let currentRpm = key.rpm_count || 0;
@@ -51,21 +51,32 @@ export async function POST(request) {
         );
       }
 
-      // Check limits: Only distribute key if it is Live and under 15 RPM
       if (key.original_status === 'Live' && currentRpm < 15) {
-        // Increment RPM count for the distributed request key load
-        await ThirdPartyKey.updateOne(
-          { _id: key._id },
-          { $inc: { rpm_count: 1 } }
-        );
-        activeValidKeys.push({
-          service_name: key.service_name,
-          api_key: key.api_key
-        });
+        evaluatedKeys.push(key);
       }
     }
 
-    return NextResponse.json({ success: true, keys: activeValidKeys });
+    if (evaluatedKeys.length === 0) {
+      return NextResponse.json({ success: false, message: 'All API keys are currently rate-limited. Please wait.' }, { status: 429 });
+    }
+
+    // Sort keys by rpm_count ascending to pick the least loaded key (Round-Robin load balancing)
+    evaluatedKeys.sort((a, b) => (a.rpm_count || 0) - (b.rpm_count || 0));
+    const selectedKey = evaluatedKeys[0];
+
+    // Increment only the selected key's RPM
+    await ThirdPartyKey.updateOne(
+      { _id: selectedKey._id },
+      { $inc: { rpm_count: 1 } }
+    );
+
+    return NextResponse.json({ 
+      success: true, 
+      keys: [{
+        service_name: selectedKey.service_name,
+        api_key: selectedKey.api_key
+      }] 
+    });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
