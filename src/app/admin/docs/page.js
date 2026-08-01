@@ -85,7 +85,10 @@ export default function AdminDocsPage() {
 
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <h2 className="text-xl font-bold mb-4 text-[#1f934b] border-b pb-2">2. Fetch 3rd Party API Keys</h2>
-          <p className="mb-4 text-gray-700">Securely fetch AI keys (e.g. OpenAI) stored by the admin. Only returns keys if the user's license is active and has credits remaining.</p>
+          <p className="mb-4 text-gray-700">Securely fetch AI keys (e.g. OpenAI, Gemini) stored by the admin. Only returns keys if the user's license is active and has credits remaining.</p>
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4 text-sm text-yellow-800">
+            <strong>Rate Limiting & Rotation:</strong> Each key is limited to a maximum of <strong>15 Requests Per Minute (RPM)</strong>. Keys exceeding this limit are temporarily paused and automatically reset to 0/15 at the start of the next full minute (synchronized with server/world clock).
+          </div>
           <div className="bg-gray-900 rounded-lg p-4 mb-4 text-sm text-gray-200 overflow-x-auto">
             <code className="text-blue-400 font-bold">POST</code> https://stockmetapro.com/api/software/get_third_party_keys
           </div>
@@ -98,7 +101,7 @@ export default function AdminDocsPage() {
           </pre>
           <h3 className="font-semibold mb-2 text-gray-800">Expected Responses:</h3>
           <ul className="list-disc pl-6 space-y-2 text-gray-600">
-            <li><strong>Valid:</strong> <code>&#123; "success": true, "keys": [&#123; "service_name": "OpenAI", "api_key": "sk-..." &#125;] &#125;</code></li>
+            <li><strong>Valid:</strong> <code>&#123; "success": true, "keys": [&#123; "service_name": "GeminiAi", "api_key": "AIzaSy..." &#125;] &#125;</code></li>
             <li><strong>Invalid:</strong> <code>&#123; "success": false, "message": "Credit limit reached" &#125;</code></li>
           </ul>
         </section>
@@ -194,6 +197,9 @@ export default function AdminDocsPage() {
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <h2 className="text-xl font-bold mb-4 text-[#1f934b] border-b pb-2">7. Report Software Error</h2>
           <p className="mb-4 text-gray-700">Silently report software errors or API failures (e.g. Gemini API errors) for admin review.</p>
+          <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-4 text-sm text-emerald-800">
+            <strong>Auto-Invalidation Hook:</strong> If the error message text contains an expired, deleted, or invalid API key, the system will automatically match the key patterns and flag that key's Status as <strong>Invalid</strong> in the database.
+          </div>
           <div className="bg-gray-900 rounded-lg p-4 mb-4 text-sm text-gray-200 overflow-x-auto">
             <code className="text-blue-400 font-bold">POST</code> https://stockmetapro.com/api/software/report_error
           </div>
@@ -203,8 +209,8 @@ export default function AdminDocsPage() {
   "license_key": "USER_LICENSE_KEY",
   "pc_build_number": "PC_HARDWARE_ID",
   "error_type": "GeminiApiError",
-  "file_name": "image123.jpg",
-  "message": "Full error text or API response body here",
+  "file_name": "GeminiService.cs",
+  "message": "API key not valid. Key value: AIzaSy_Example_Key",
   "app_version": "1.0.0",
   "occurred_at": "2026-07-28T10:15:00.000Z"
 &#125;
