@@ -44,18 +44,19 @@ export default function ReportedKeysPage() {
       </p>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="p-4 font-semibold text-gray-600">Reported At</th>
-              <th className="p-4 font-semibold text-gray-600">License Key</th>
-              <th className="p-4 font-semibold text-gray-600">PC Hardware ID</th>
-              <th className="p-4 font-semibold text-gray-600">Harvested API Key</th>
-              <th className="p-4 font-semibold text-gray-600">Status</th>
-              <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-[1000px] w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Reported At</th>
+                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">License Key</th>
+                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">PC Hardware ID</th>
+                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Harvested API Key</th>
+                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Status</th>
+                <th className="p-4 font-semibold text-gray-600 text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
             {keys.map((k) => (
               <tr key={k._id} className="border-b border-gray-50 hover:bg-gray-50">
                 <td className="p-4 text-sm text-gray-700">{new Date(k.reported_at).toLocaleString()}</td>
@@ -82,6 +83,7 @@ export default function ReportedKeysPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
