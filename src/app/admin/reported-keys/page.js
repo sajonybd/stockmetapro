@@ -5,14 +5,34 @@ export default function ReportedKeysPage() {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchKeys = () => {
     fetch('/api/admin/reported-keys')
       .then(res => res.json())
       .then(data => {
         if (data.success) setKeys(data.data);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchKeys();
   }, []);
+
+  const handleDeleteKey = async (id) => {
+    if (!confirm('Are you sure you want to delete this harvested API key?')) return;
+    try {
+      const res = await fetch(`/api/admin/reported-keys?id=${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        fetchKeys();
+      } else {
+        alert('Failed to delete key');
+      }
+    } catch (err) {
+      alert('Error deleting key');
+    }
+  };
 
   if (loading) return <div className="p-8">Loading...</div>;
 
@@ -32,6 +52,7 @@ export default function ReportedKeysPage() {
               <th className="p-4 font-semibold text-gray-600">PC Hardware ID</th>
               <th className="p-4 font-semibold text-gray-600">Harvested API Key</th>
               <th className="p-4 font-semibold text-gray-600">Status</th>
+              <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -46,10 +67,18 @@ export default function ReportedKeysPage() {
                     {k.status}
                   </span>
                 </td>
+                <td className="p-4 text-right">
+                  <button 
+                    onClick={() => handleDeleteKey(k._id)}
+                    className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
             {keys.length === 0 && (
-              <tr><td colSpan="5" className="p-8 text-center text-gray-500">No keys harvested yet.</td></tr>
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500">No keys harvested yet.</td></tr>
             )}
           </tbody>
         </table>

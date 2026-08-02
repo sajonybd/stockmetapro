@@ -20,3 +20,23 @@ export async function GET() {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  if (!(await checkAuth())) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'Missing id parameter' }, { status: 400 });
+    }
+
+    await connectToDatabase();
+    await ReportedApiKey.findByIdAndDelete(id);
+
+    return NextResponse.json({ success: true, message: 'Harvested API Key deleted successfully' });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
