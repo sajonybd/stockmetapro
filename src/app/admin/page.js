@@ -173,70 +173,72 @@ export default function AdminPage() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="p-4 font-semibold text-gray-600">API Key</th>
-                <th className="p-4 font-semibold text-gray-600">Credits</th>
-                <th className="p-4 font-semibold text-gray-600">Created</th>
-                <th className="p-4 font-semibold text-gray-600">Activated</th>
-                <th className="p-4 font-semibold text-gray-600">Expires</th>
-                <th className="p-4 font-semibold text-gray-600">Status</th>
-                <th className="p-4 font-semibold text-gray-600">Owner / PC</th>
-                <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {keys.map((key) => (
-                <tr key={key._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="p-4 font-mono text-sm text-gray-800">{key.api_key}</td>
-                  <td className="p-4 text-gray-700">{key.credits_used || 0} / {key.credit_limit}</td>
-                  <td className="p-4 text-gray-700">{new Date(key.createdAt).toLocaleDateString()}</td>
-                  <td className="p-4 font-medium">{key.activation_date ? new Date(key.activation_date).toLocaleDateString() : <span className="text-blue-600">Pending</span>}</td>
-                  <td className="p-4 font-medium">{key.expire_date ? new Date(key.expire_date).toLocaleDateString() : <span className="text-gray-400">N/A</span>}</td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      key.status === 'Active' ? 'bg-green-100 text-green-700' : 
-                      key.status === 'Disabled' ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {key.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-500 text-sm">
-                    {key.userId ? <span className="text-blue-600 font-medium">User: {key.userId.name}</span> : (key.pc_build_number || 'Unbound/Admin')}
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => toggleKeyStatus(key)}
-                        className={`${key.status === 'Active' ? 'text-orange-500 hover:text-orange-700' : 'text-green-500 hover:text-green-700'} text-sm font-medium`}
-                      >
-                        {key.status === 'Active' ? 'Disable' : 'Enable'}
-                      </button>
-                      <button 
-                        onClick={() => openEditModal(key)}
-                        className="text-blue-500 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => deleteKey(key._id)}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto w-full">
+            <table className="min-w-[1000px] w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">API Key</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Credits</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Created</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Activated</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Expires</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Status</th>
+                  <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Owner / PC</th>
+                  <th className="p-4 font-semibold text-gray-600 text-right whitespace-nowrap">Actions</th>
                 </tr>
-              ))}
-              {keys.length === 0 && (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center text-gray-500">No keys generated yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-      </div>
+              </thead>
+              <tbody>
+                {keys.map((key) => (
+                  <tr key={key._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="p-4 font-mono text-sm text-gray-800">{key.api_key}</td>
+                    <td className="p-4 text-gray-700">{key.credits_used || 0} / {key.credit_limit}</td>
+                    <td className="p-4 text-gray-700">{new Date(key.createdAt).toLocaleDateString()}</td>
+                    <td className="p-4 font-medium">{key.activation_date ? new Date(key.activation_date).toLocaleDateString() : <span className="text-blue-600">Pending</span>}</td>
+                    <td className="p-4 font-medium">{key.expire_date ? new Date(key.expire_date).toLocaleDateString() : <span className="text-gray-400">N/A</span>}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        key.status === 'Active' ? 'bg-green-100 text-green-700' : 
+                        key.status === 'Disabled' ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {key.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-gray-500 text-sm">
+                      {key.userId ? <span className="text-blue-600 font-medium">User: {key.userId.name}</span> : (key.pc_build_number || 'Unbound/Admin')}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => toggleKeyStatus(key)}
+                          className={`${key.status === 'Active' ? 'text-orange-500 hover:text-orange-700' : 'text-green-500 hover:text-green-700'} text-sm font-medium`}
+                        >
+                          {key.status === 'Active' ? 'Disable' : 'Enable'}
+                        </button>
+                        <button 
+                          onClick={() => openEditModal(key)}
+                          className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => deleteKey(key._id)}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {keys.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="p-8 text-center text-gray-500">No keys generated yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
       {/* Edit Modal */}
       {editingKey && (
