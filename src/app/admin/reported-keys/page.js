@@ -44,25 +44,24 @@ export default function ReportedKeysPage() {
       </p>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="min-w-[1000px] w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Reported At</th>
-                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">License Key</th>
-                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">PC Hardware ID</th>
-                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Harvested API Key</th>
-                <th className="p-4 font-semibold text-gray-600 whitespace-nowrap">Status</th>
-                <th className="p-4 font-semibold text-gray-600 text-right whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <table className="w-full text-left border-collapse table-fixed">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="p-4 font-semibold text-gray-600 w-[15%]">Reported At</th>
+              <th className="p-4 font-semibold text-gray-600 w-[20%]">License Key</th>
+              <th className="p-4 font-semibold text-gray-600 w-[15%]">PC Hardware ID</th>
+              <th className="p-4 font-semibold text-gray-600 w-[30%]">Harvested API Key</th>
+              <th className="p-4 font-semibold text-gray-600 w-[10%]">Status</th>
+              <th className="p-4 font-semibold text-gray-600 text-right w-[10%]">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
             {keys.map((k) => (
               <tr key={k._id} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="p-4 text-sm text-gray-700">{new Date(k.reported_at).toLocaleString()}</td>
-                <td className="p-4 font-mono text-sm text-blue-600">{k.license_key}</td>
-                <td className="p-4 font-mono text-xs text-gray-500">{k.pc_build_number}</td>
-                <td className="p-4 font-mono text-sm font-bold text-gray-800">{k.api_key}</td>
+                <td className="p-4 text-xs text-gray-700 break-words">{new Date(k.reported_at).toLocaleString()}</td>
+                <td className="p-4 font-mono text-xs text-blue-600 break-all">{k.license_key}</td>
+                <td className="p-4 font-mono text-xs text-gray-500 break-all">{k.pc_build_number}</td>
+                <td className="p-4 font-mono text-xs font-bold text-gray-800 break-all">{k.api_key}</td>
                 <td className="p-4">
                   <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
                     {k.status}
@@ -83,7 +82,6 @@ export default function ReportedKeysPage() {
             )}
           </tbody>
         </table>
-        </div>
       </div>
     </div>
   );
