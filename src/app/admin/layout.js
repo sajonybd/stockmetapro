@@ -28,6 +28,9 @@ export default async function AdminLayout({ children }) {
           <Link href="/admin/payments" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
             Manage Payments
           </Link>
+          <Link href="/admin/transactions" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium text-green-700">
+            SMS Transactions
+          </Link>
           <Link href="/admin/reported-keys" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium text-blue-600">
             Harvested API Keys
           </Link>

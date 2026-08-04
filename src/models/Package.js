@@ -4,6 +4,7 @@ const PackageSchema = new mongoose.Schema({
   name: { type: String, required: true },
   credit_limit: { type: Number, required: true },
   price_tk: { type: Number, required: true },
+  price_usd: { type: Number, default: 1.0 },
   duration_days: { type: Number, default: 30 },
   is_popular: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },

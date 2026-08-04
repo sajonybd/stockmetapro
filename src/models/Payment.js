@@ -7,11 +7,16 @@ const PaymentSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   mobile: { type: String, required: true },
-  payment_method: { type: String, enum: ['bKash', 'Rocket', 'Nagad'], required: true },
+  payment_method: { type: String, enum: ['bKash', 'Rocket', 'Nagad', 'Payoneer', 'Skrill'], required: true },
   trx_id: { type: String, required: true },
   amount: { type: Number, required: true },
-  status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+  currency: { type: String, default: 'BDT' },
+  status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Blocked'], default: 'Pending' },
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.Payment || mongoose.model('Payment', PaymentSchema);
+if (mongoose.models.Payment) {
+  delete mongoose.models.Payment;
+}
+
+export default mongoose.model('Payment', PaymentSchema);

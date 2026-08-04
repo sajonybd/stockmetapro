@@ -41,7 +41,39 @@ export async function POST(request) {
     if (action === 'Reject') {
       payment.status = 'Rejected';
       await payment.save();
-      return NextResponse.json({ success: true, message: 'Payment rejected' });
+
+      // Clean up any temporary User record created so email/mobile is freed for new account
+      const User = (await import('@/models/User')).default;
+      const License = (await import('@/models/License')).default;
+
+      const user = await User.findOne({
+        $or: [
+          ...(payment.email ? [{ email: payment.email.toLowerCase().trim() }] : []),
+          ...(payment.mobile ? [{ mobile: payment.mobile.trim() }] : [])
+        ]
+      });
+
+      if (user) {
+        const hasLicense = await License.findOne({ userId: user._id });
+        if (!hasLicense) {
+          await User.findByIdAndDelete(user._id);
+        }
+      }
+
+      return NextResponse.json({ success: true, message: 'Payment rejected and account freed.' });
+    }
+
+    if (action === 'Block') {
+      payment.status = 'Blocked';
+      await payment.save();
+      const BlockedUser = (await import('@/models/BlockedUser')).default;
+      await BlockedUser.create({
+        name: payment.name || '',
+        email: payment.email || '',
+        mobile: payment.mobile || '',
+        reason: 'Blocked via payment rejection'
+      });
+      return NextResponse.json({ success: true, message: 'User added to Blocked List and payment blocked' });
     }
 
     if (action === 'Approve') {
@@ -53,6 +85,9 @@ export async function POST(request) {
         paymentProvider: payment.payment_method ? payment.payment_method.toLowerCase() : 'bkash',
         trxId: payment.trx_id,
         amountPaid: payment.amount || 0,
+        userName: payment.name,
+        userEmail: payment.email,
+        userMobile: payment.mobile,
       });
 
       payment.status = 'Approved';

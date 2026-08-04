@@ -14,18 +14,78 @@ export async function POST(request) {
     await connectToDatabase();
     const cleanIdentifier = identifier.trim();
 
-    // Check if input is a key pattern (usually letters/digits, without @ and not just a phone number)
-    const isEmail = cleanIdentifier.includes('@');
-    const isPhone = /^\+?[0-9]{8,15}$/.test(cleanIdentifier);
-    const isLicenseKey = !isEmail && !isPhone;
+    // 0. Check if user is Blocked
+    const BlockedUser = (await import('@/models/BlockedUser')).default;
+    let cleanDigits = cleanIdentifier.replace(/\D/g, '');
+    if (cleanDigits.startsWith('880')) cleanDigits = cleanDigits.substring(3);
+    if (cleanDigits.startsWith('0')) cleanDigits = cleanDigits.substring(1);
 
-    // 1. Search User by Email or Mobile
-    const user = await User.findOne({
+    const isBlocked = await BlockedUser.findOne({
       $or: [
         { email: cleanIdentifier.toLowerCase() },
-        { mobile: cleanIdentifier }
+        ...(cleanDigits ? [{ mobile: { $regex: new RegExp(cleanDigits + '$') } }] : [])
       ]
     });
+
+    if (isBlocked) {
+      const isEmailInput = cleanIdentifier.includes('@');
+      const isEmailMatched = isBlocked.email && isBlocked.email.toLowerCase() === cleanIdentifier.toLowerCase();
+      const blockedType = (isEmailInput || isEmailMatched) ? 'email' : 'mobile';
+
+      return NextResponse.json({
+        success: false,
+        isBlocked: true,
+        blockedType,
+        message: blockedType === 'email' 
+          ? 'Email blocked. Account Rejected. Please try with a new email.' 
+          : 'Number blocked. Account Rejected. Please try with a new mobile number.'
+      }, { status: 403 });
+    }
+
+    // 0.5 Check if user has a Pending payment request awaiting verification
+    const Payment = (await import('@/models/Payment')).default;
+    const pendingPayment = await Payment.findOne({
+      status: 'Pending',
+      $or: [
+        { email: cleanIdentifier.toLowerCase() },
+        ...(cleanDigits ? [{ mobile: { $regex: new RegExp(cleanDigits + '$') } }] : [])
+      ]
+    }).populate('packageId');
+
+    if (pendingPayment) {
+      return NextResponse.json({
+        success: true,
+        isPending: true,
+        pendingDetails: {
+          amount: pendingPayment.amount,
+          trx_id: pendingPayment.trx_id,
+          packageName: pendingPayment.packageId?.name || 'Pro Plan',
+          currency: pendingPayment.currency || 'BDT'
+        }
+      });
+    }
+
+    // Check if input is a key pattern (usually letters/digits, without @ and not just a phone number)
+    const isEmail = cleanIdentifier.includes('@');
+    const isPhone = !isEmail && /^\+?[0-9]{5,17}$/.test(cleanIdentifier.replace(/\s/g, ''));
+    const isLicenseKey = !isEmail && !isPhone;
+
+    // 1. Search User by Email, Key or Mobile (flexible prefix checking)
+    let user = null;
+    if (isEmail) {
+      user = await User.findOne({ email: cleanIdentifier.toLowerCase() });
+    } else if (isPhone) {
+      // Stripped digits matching
+      let digits = cleanIdentifier.replace(/\D/g, '');
+      if (digits.startsWith('880')) {
+        digits = digits.substring(3);
+      }
+      if (digits.startsWith('0')) {
+        digits = digits.substring(1);
+      }
+      const regexSearch = new RegExp(digits + '$');
+      user = await User.findOne({ mobile: { $regex: regexSearch } });
+    }
 
     // 2. Search License by Key
     let license = await License.findOne({
@@ -72,7 +132,7 @@ export async function POST(request) {
         currentCredits: remainingCredits,
         expiresAt: expiry,
         packageName: license.packageId ? license.packageId.name : 'Standard Plan',
-        userInfo: resolvedUser ? { name: resolvedUser.name, email: resolvedUser.email, mobile: resolvedUser.mobile } : null
+        userInfo: resolvedUser ? { _id: resolvedUser._id, name: resolvedUser.name, email: resolvedUser.email, mobile: resolvedUser.mobile } : null
       }
     });
 

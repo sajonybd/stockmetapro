@@ -13,8 +13,8 @@ export function middleware(request) {
     }
   }
 
-  // Protect User Dashboard routes
-  const isUserPath = path.startsWith('/dashboard') || path.startsWith('/api/user');
+  // Protect User Dashboard routes (Exclude public purchase endpoint /api/user/purchase)
+  const isUserPath = (path.startsWith('/dashboard') || path.startsWith('/api/user')) && !path.startsWith('/api/user/purchase');
   if (isUserPath) {
     const userSession = request.cookies.get('user_session');
     if (!userSession) {

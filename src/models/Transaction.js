@@ -4,22 +4,26 @@ const TransactionSchema = new mongoose.Schema({
   licenseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'License',
-    required: true,
+    required: false,
+    default: null,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    default: null,
   },
   packageId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Package',
-    required: true,
+    required: false,
+    default: null,
   },
   type: {
     type: String,
     enum: ['NEW_PURCHASE', 'RENEWAL', 'TOPUP', 'MANUAL_OVERRIDE'],
     required: true,
+    default: 'NEW_PURCHASE',
   },
   amountPaid: {
     type: Number,
@@ -38,7 +42,8 @@ const TransactionSchema = new mongoose.Schema({
   },
   totalCreditsAfter: {
     type: Number,
-    required: true,
+    required: false,
+    default: 0,
   },
   previousExpiry: {
     type: Date,
@@ -46,11 +51,11 @@ const TransactionSchema = new mongoose.Schema({
   },
   newExpiry: {
     type: Date,
-    required: true,
+    required: false,
+    default: null,
   },
   paymentProvider: {
     type: String,
-    enum: ['bkash', 'nagad', 'rocket', 'stripe', 'manual'],
     default: 'bkash',
   },
   trxId: {
@@ -63,4 +68,5 @@ const TransactionSchema = new mongoose.Schema({
   },
 });
 
+delete mongoose.models.Transaction;
 export default mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);

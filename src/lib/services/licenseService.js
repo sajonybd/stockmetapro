@@ -4,6 +4,11 @@ import User from '../../models/User.js';
 import Package from '../../models/Package.js';
 import Transaction from '../../models/Transaction.js';
 
+export function generateLicenseKey() {
+  const seg = () => Math.random().toString(36).substring(2, 7).toUpperCase().padStart(5, 'X');
+  return `SMPBD-${seg()}-${seg()}-${seg()}`;
+}
+
 /**
  * Executes a license renewal or purchase with carry-forward credit rollover.
  */
@@ -13,6 +18,9 @@ export async function renewOrPurchaseLicense({
   paymentProvider = 'bkash',
   trxId = null,
   amountPaid = 0,
+  userName = '',
+  userEmail = '',
+  userMobile = '',
 }) {
   await connectToDatabase();
 
@@ -22,14 +30,31 @@ export async function renewOrPurchaseLicense({
   }
 
   const cleanIdentifier = identifier ? identifier.trim() : '';
+  const searchEmail = (userEmail || (cleanIdentifier.includes('@') ? cleanIdentifier : '')).toLowerCase().trim();
+  const searchMobile = userMobile || (!cleanIdentifier.includes('@') ? cleanIdentifier : '');
 
   // Search user by email or phone if provided
   let user = await User.findOne({
     $or: [
-      { email: cleanIdentifier.toLowerCase() },
-      { mobile: cleanIdentifier }
+      ...(searchEmail ? [{ email: searchEmail }] : []),
+      ...(searchMobile ? [{ mobile: searchMobile }] : [])
     ]
   });
+
+  // If user still not found, create a new User record if email is available
+  if (!user && searchEmail) {
+    try {
+      user = await User.create({
+        name: userName || 'New User',
+        email: searchEmail,
+        mobile: searchMobile || undefined,
+        password: 'SMP-' + Math.random().toString(36).substring(2, 10),
+        role: 'user'
+      });
+    } catch (e) {
+      console.error('Failed creating user during approval:', e.message);
+    }
+  }
 
   // Search existing license by licenseKey/api_key or by userId
   let license = null;
@@ -107,7 +132,7 @@ export async function renewOrPurchaseLicense({
     };
   } else {
     // If no existing license found, generate a new one
-    const newLicenseKey = `SMP-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    const newLicenseKey = generateLicenseKey();
     const expiryDate = new Date(now.setDate(now.getDate() + selectedPackage.duration_days));
 
     const newLicense = await License.create({

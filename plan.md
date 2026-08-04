@@ -30,7 +30,7 @@ Tracks accounts, authentication, and quick lookup keys.
   "_id": "ObjectId",
   "name": "John Doe",
   "email": "john@example.com",
-  "phone": "+1234567890",
+  "mobile": "+8801619183401",
   "role": "user",
   "createdAt": "ISODate"
 }
@@ -43,31 +43,58 @@ Main ledger for software access, expiration, and credit rollover.
   "_id": "ObjectId",
   "userId": "ObjectId (ref: User)",
   "packageId": "ObjectId (ref: Package)",
-  "licenseKey": "XXXX-XXXX-XXXX-XXXX",
-  "status": "active",
+  "licenseKey": "SMP-XXXX-XXXX",
+  "status": "Active",
   "currentCredits": 1250,
-  "expiresAt": "ISODate",
+  "expire_date": "ISODate",
   "lastRenewedAt": "ISODate",
-  "autoRenew": false,
   "createdAt": "ISODate"
 }
 ```
 
-### D. `transactions` Collection (Renewal & Purchase Audit Log)
-Immutable audit log for purchases, top-ups, and credit rollovers.
+### D. `payments` Collection (Pending & Processed Submissions)
+Tracks payment submissions from users for manual/auto verification.
 ```json
 {
   "_id": "ObjectId",
-  "licenseId": "ObjectId (ref: License)",
-  "userId": "ObjectId",
-  "type": "NEW_PURCHASE | RENEWAL",
-  "amountPaid": 29.99,
-  "creditsAdded": 1000,
-  "creditsRolledOver": 250,
-  "previousExpiry": "ISODate",
-  "newExpiry": "ISODate",
-  "paymentProvider": "stripe | bkash | nagad | manual",
+  "userId": "ObjectId (optional)",
+  "packageId": "ObjectId (ref: Package)",
+  "licenseId": "ObjectId (optional ref: License)",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "mobile": "+8801619183401",
+  "payment_method": "bKash",
+  "trx_id": "8HGD73X9",
+  "amount": 150,
+  "currency": "BDT",
+  "status": "Pending | Approved | Rejected | Blocked",
   "createdAt": "ISODate"
+}
+```
+
+### E. `transactions` Collection (SMS Webhook Receipts & Audit Logs)
+Stores incoming SMS payment messages from **httpsms** for auto-matching and credit audit logs.
+```json
+{
+  "_id": "ObjectId",
+  "trxId": "8HGD73X9",
+  "sender": "+8801980126826",
+  "amount": 150,
+  "rawMessage": "Received Tk 150.00 from 017... TrxID 8HGD73X9",
+  "createdAt": "ISODate"
+}
+```
+
+### F. `blockedusers` Collection (Access Rejection List)
+Tracks accounts blocked from purchasing licenses or opening new accounts.
+```json
+{
+  "_id": "ObjectId",
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "mobile": "+8801700000000",
+  "reason": "Blocked via payment rejection",
+  "blockedAt": "ISODate"
 }
 ```
 
@@ -84,7 +111,7 @@ Immutable audit log for purchases, top-ups, and credit rollovers.
                                     │
                                     ▼
                       ┌───────────────────────────┐
-                      │ Is status == 'active' AND │
+                      │ Is status == 'Active' AND │
                       │   expiresAt > now()?      │
                       └─────────────┬─────────────┘
                                     │
@@ -102,120 +129,66 @@ New Credits = Current + Package.credits  New Credits = Package.credits
                          [ Save License & Log Transaction ]
 ```
 
-### B. Atomic Renewal Update Logic (Mongoose)
-```javascript
-const isBeforeExpiry = license.status === 'active' && new Date(license.expiresAt) > new Date();
+---
 
-const rolledOverCredits = isBeforeExpiry ? license.currentCredits : 0;
-const totalNewCredits = rolledOverCredits + selectedPackage.creditsAllocated;
-
-const baseDate = isBeforeExpiry ? new Date(license.expiresAt) : new Date();
-const newExpiry = new Date(baseDate.setDate(baseDate.getDate() + selectedPackage.durationDays));
-
-await License.updateOne(
-  { _id: license._id },
-  {
-    $set: {
-      currentCredits: totalNewCredits,
-      expiresAt: newExpiry,
-      status: 'active',
-      lastRenewedAt: new Date()
-    }
-  }
-);
-```
+## 3. Backward Compatibility Guarantee
+- Existing legacy APIs (such as `/api/get_api_keys`) maintain exact payload signatures.
+- Original Mongo fields (`api_key`, `credit_limit`, `credits_used`, `expire_date`) remain intact to prevent breaking live desktop installations.
 
 ---
 
-## 3. Project Structure (Next.js App Router)
-```
-src/
-├── app/
-│   ├── (auth)/
-│   │   ├── login/
-│   │   └── register/
-│   ├── (public)/
-│   │   ├── page.tsx               # Marketing / Package List
-│   │   ├── checkout/page.tsx      # Buy new license key
-│   │   └── renew/page.tsx         # Quick Renewal lookup (Phone/Email/Key)
-│   ├── (dashboard)/
-│   │   └── user/
-│   │       ├── page.tsx           # View keys, credit balance, expiry
-│   │       └── usage/page.tsx     # Credit consumption logs
-│   ├── admin/
-│   │   ├── packages/page.tsx      # CRUD for credits/prices/duration
-│   │   ├── licenses/page.tsx      # Extend, modify, or override credits manually
-│   │   └── users/page.tsx
-│   └── api/
-│       ├── get_api_keys/          # Legacy backward-compatible API
-│       └── v1/
-│           ├── license/verify/    # Client software API
-│           └── license/consume/   # Credit consumption API
-├── lib/
-│   ├── db/
-│   │   └── mongodb.ts             # Mongo client connection
-│   └── services/
-│       ├── licenseService.ts      # Rollover & renewal logic
-│       └── cronService.ts         # Expiration cleaner
-└── models/                        # Mongoose schemas
-    ├── Package.ts
-    ├── User.ts
-    ├── License.ts
-    └── Transaction.ts
-```
+## 4. Comprehensive Changelog & Recent Feature Updates
 
----
-
-## 4. Expiration Cleanup (Cron / Scheduled Jobs)
-```javascript
-// Runs daily
-await License.updateMany(
-  {
-    expiresAt: { $lt: new Date() },
-    status: 'active'
-  },
-  {
-    $set: {
-      status: 'expired',
-      currentCredits: 0
-    }
-  }
-);
-```
-
----
-
-## 5. Backward Compatibility Guarantee
-- Existing legacy APIs (such as `/api/get_api_keys`) will maintain their exact payload signatures.
-- Original Mongo fields (`api_key`, `credit_limit`, `credits_used`, `expire_date`) will remain intact to prevent breaking live desktop app installations.
-
----
-
-## 6. Recent Design & Checkout Logic Updates
 The following updates have been successfully implemented and saved locally:
-1. **Brand Logo Update**:
-   - Integrated `StockMetaProLogoo.png` brand logo (height: `h-14`) inside the landing page and dark-themed About Us page headers.
-2. **Checkout Validation Logic**:
-   - Strict front-end input validation added to the customer registration/renewal form.
-   - Phone numbers must be at least 11 digits (excluding spaces/symbols).
-   - Emails must contain the `@` character.
-3. **Payment & Copy Details**:
-   - bKash Send Money target number corrected to `01980126826` (11 digits).
-   - Integrated clipboard-copy button with green checkmark animation (`✓` icon and "Number Copied!" text) visible for 2 seconds.
-4. **Why Choose Stock Meta Pro Section**:
-   - Added a center-aligned 4-grid feature list with custom icons, purple faded underline margins under titles, and a full-width horizontally faded blue gradient ribbon at the bottom.
-5. **Ready to Boost Your SEO Section**:
-   - Background set to dark violet theme (`#090514`).
-   - Title underlined with a perfectly proportioned faded purple glowing margin line.
-6. **Support Features**:
-   - Added custom Facebook support option with direct share URL: `https://www.facebook.com/share/19GMChfbpV/`.
-   - Enabled composing direct support mailto target windows dynamically.
-7. **Strict Field Validation**:
-   - Phone field validates for EXACTLY 11 digits. If invalid, applies a red border and reveals an animated "recheck number" badge.
-   - Payment method validation highlights the grid buttons in red and presents a "Select payment method" badge if Next is clicked without selection.
-   - Terms agreement validation enforces check state. If unchecked, the container displays a red border and a "you must agree" badge.
-8. **Payment Mock Checking & UI dialogs**:
-   - Payment success step completely redesigned with dynamic data display (Plan activation, Paid amount, Transaction ID).
-   - Invalid Transaction ID step displays a red triangle danger icon and routes back to the previous input step on OK click.
-   - Offline database fallback ensures testing is uninterrupted.
-   - Mock verification ID set to "TEST-TRX-12345". Validated credentials set to phone "01980126826" or key "TEST-KEY-12345".
+
+1. **Admin License Management Tabs**:
+   - Organized `/admin` page into 3 tab switches:
+     - 🔑 **Generated API Keys**
+     - 🕒 **Pending Payments** (Displays live pending count and pending payments list)
+     - 🚫 **Blocked Users** (Displays blocklist records with Unblock & Allow actions)
+   - Created dedicated **SMS Transactions** page (`/admin/transactions`) displaying forwarded **httpsms** logs with real-time search & delete features.
+
+2. **Blocked Users System & Access Rejection**:
+   - Added **Block** action next to Approve and Reject in Admin pending payments table.
+   - Blocking a user creates an entry in `blockedusers` collection and updates payment status to `Blocked`.
+   - Searching or signing up with a blocked number/email presents a dedicated red alert modal:
+     - 📱 Mobile: **"Number blocked. Account Rejected. Please try with a new mobile number."**
+     - 📧 Email: **"Email blocked. Account Rejected. Please try with a new email address."**
+   - Unblocking a user from Admin removes them from the blocklist and restores normal registration rights.
+
+3. **Smooth Verification & Circular Loading Spinner**:
+   - Payment submit button disables instantly and shows a 2-second circular loading spinner with `Verifying...` text.
+   - Non-blocking inline warning (`⚠️ Please recheck your transaction number / ID`) pops up above the TRXID input on verification mismatch, replacing disruptive browser pop-up alerts.
+   - 2nd submit attempt performs an inline database match first, and if unverified, automatically force-submits as `Pending` for admin approval.
+
+4. **Instant Pending Verification Lookup**:
+   - When a user enters their number/email in Step 1 while a payment request is still pending, the system directly displays the **"Payment Awaiting Verification"** modal with Amount Paid & Transaction ID details.
+
+5. **Auto User Provisioning on Admin Approval**:
+   - Approving a pending request automatically creates a new `User` document (if not already existing) and assigns a generated License Key (`SMP-XXXX-XXXX`).
+
+7. **Standardized License Key Format**:
+   - All newly generated keys across manual generation, web purchases, and auto-approvals follow the **`SMPBD-XXXXX-XXXXX-XXXXX`** format (e.g. `SMPBD-K89DF-921XA-773MN`).
+
+8. **Payoneer & Skrill Recipient Emails**:
+   - Updated recipient email addresses for international payment methods:
+     - **Payoneer**: `okentertainmentbd@hotmail.com`
+     - **Skrill**: `mahfuj11081999@gmail.com`
+   - Configured single-line responsive font rendering (`text-sm sm:text-base whitespace-nowrap`) to prevent long email breaking.
+
+9. **UI & Inline Error Badge Polish**:
+   - Joined country prefix (`+880`) and mobile input into a single unified container with a continuous green/red border.
+   - Positioned error status badges (`already used`, `recheck number`) in the top-right label row above input boxes to prevent text overlap.
+   - Enforced smart disabled state on Step 2 `Next` button until Name, Mobile, Email, and Method pass full validation checks.
+
+10. **Regex End-Matching Phone Uniqueness Check**:
+    - Updated `/api/auth/check-unique` with regex ending matching (`cleanDigits+$`) so phone numbers match regardless of prefix (`+880`, `880`, or `0`).
+
+11. **Admin Section Layout Reorganization**:
+    - Split Admin panel into clean dedicated pages:
+      - `/admin`: **🔑 Manage Licenses**
+      - `/admin/payments`: **🕒 Pending Payments** & **🚫 Blocked Users**
+      - `/admin/transactions`: **📱 SMS Webhook Transactions**
+
+12. **httpSMS Webhook & Transaction Schema Resilience**:
+    - Updated `Transaction` model schema with optional fields (`licenseId`, `packageId`, `totalCreditsAfter`, `newExpiry`) to allow unlinked incoming SMS pool entries to save cleanly.
