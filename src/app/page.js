@@ -417,15 +417,16 @@ export default function Home() {
       setEmailCheckMessage('');
     }
   };
+
   return (
-    <div className="min-h-screen font-sans bg-[#090514] text-gray-100">
-      {/* Header */}
-      <header className="bg-[#0c091e]/90 backdrop-blur-md border-b border-purple-950/40 sticky top-0 z-50">
+    <div className="min-h-screen font-sans bg-[#0c071e] text-gray-100">
+      {/* Header with slightly lighter glowing tone */}
+      <header className="bg-[#150f33]/90 backdrop-blur-md border-b border-purple-800/30 sticky top-0 z-50 shadow-lg shadow-purple-950/20">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 cursor-pointer">
             <img src="/images/icons/StockMetaProLogoo.png" alt="StockMetaPro Logo" className="w-auto object-contain" style={{ height: '57px' }} />
           </Link>
-          <nav className="hidden md:flex items-center gap-8 font-medium text-gray-400">
+          <nav className="hidden md:flex items-center gap-8 font-medium text-gray-300">
             <a href="#" className="text-white hover:text-green-400 transition-colors">Home</a>
             <a href="#features" className="hover:text-green-400 transition-colors">Features</a>
             <a href="#pricing" className="hover:text-green-400 transition-colors">Pricing</a>
@@ -435,20 +436,20 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#0c091e] to-[#090514] text-white py-20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-900/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-900/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+      {/* Hero Section - Reduced top space & lighter vibrant background gradient */}
+      <section className="bg-gradient-to-br from-[#1b123d] via-[#130b2e] to-[#0c071e] text-white pt-8 pb-12 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full -translate-y-1/2 translate-x-1/3 filter blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-600/10 rounded-full translate-y-1/2 -translate-x-1/4 filter blur-3xl"></div>
         
-         <div className="max-w-6xl mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div className="max-w-6xl mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="text-left">
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-6 bg-gradient-to-r from-blue-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 bg-gradient-to-r from-blue-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
               Boost Your Microstock Career and Passive Income to the Next Level
             </h1>
-            <h2 className="text-xl text-purple-300 mb-6 font-semibold">
+            <h2 className="text-lg text-purple-300 mb-4 font-semibold">
               Best Metadata Tool for Microstock Contributors!
             </h2>
-            <p className="text-sm text-purple-200 mb-8 leading-relaxed">
+            <p className="text-sm text-purple-200/90 mb-6 leading-relaxed">
               Let <strong className="text-yellow-400 font-extrabold">Stock Meta Pro</strong> generate SEO-friendly titles, keywords, and descriptions in seconds. Save time, upload faster, and grow your <strong className="text-yellow-400 font-extrabold">microstock</strong> career with smart metadata, better visibility and, more <strong className="text-yellow-400 font-extrabold">downloads</strong> across <strong className="text-yellow-400 font-extrabold">Adobe Stock</strong>, <strong className="text-yellow-400 font-extrabold">Shutterstock</strong>, <strong className="text-yellow-400 font-extrabold">Magnific</strong>, <strong className="text-yellow-400 font-extrabold">Vecteezy</strong> and more.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -462,8 +463,8 @@ export default function Home() {
           
           <div className="flex justify-center relative">
             {/* Glowing background bubble behind image */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/20 to-blue-600/20 rounded-full filter blur-3xl opacity-60 scale-95"></div>
-            <img src="/images/icons/hero image.png" alt="Microstock Vector Art Illustration" className="max-w-full h-auto object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(139,92,246,0.15)] animate-float" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/25 to-blue-600/25 rounded-full filter blur-3xl opacity-70 scale-95"></div>
+            <img src="/images/icons/hero image.png" alt="Microstock Vector Art Illustration" className="max-w-full h-auto object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(139,92,246,0.2)] animate-float" />
           </div>
         </div>
       </section>
