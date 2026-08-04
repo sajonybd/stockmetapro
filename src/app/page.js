@@ -484,25 +484,25 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section - Compact top/bottom spacing */}
-      <section className="bg-gradient-to-br from-[#0c091e] to-[#090514] text-white pt-4 pb-2 relative overflow-hidden">
+      {/* Hero Section - Original background color & compact top/bottom spacing */}
+      <section className="bg-gradient-to-br from-[#0c091e] to-[#090514] text-white pt-6 pb-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-900/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-900/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
         
-        <div className="max-w-6xl mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        <div className="max-w-6xl mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="text-left">
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-2 bg-gradient-to-r from-blue-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 bg-gradient-to-r from-blue-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
               Boost Your Microstock Career and Passive Income to the Next Level
             </h1>
-            <h2 className="text-lg text-purple-300 mb-1.5 font-semibold">
+            <h2 className="text-lg text-purple-300 mb-3 font-semibold">
               Best Metadata Tool for Microstock Contributors!
             </h2>
-            <p className="text-sm text-purple-200 mb-3 leading-relaxed">
+            <p className="text-sm text-purple-200 mb-5 leading-relaxed">
               Let <strong className="text-yellow-400 font-extrabold">Stock Meta Pro</strong> generate SEO-friendly titles, keywords, and descriptions in seconds. Save time, upload faster, and grow your <strong className="text-yellow-400 font-extrabold">microstock</strong> career with smart metadata, better visibility and, more <strong className="text-yellow-400 font-extrabold">downloads</strong> across <strong className="text-yellow-400 font-extrabold">Adobe Stock</strong>, <strong className="text-yellow-400 font-extrabold">Shutterstock</strong>, <strong className="text-yellow-400 font-extrabold">Magnific</strong>, <strong className="text-yellow-400 font-extrabold">Vecteezy</strong> and more.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4">
               <a href="#pricing">
-                <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-2.5 rounded-full font-bold text-sm hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-pink-500/30 transform hover:-translate-y-0.5">
+                <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-10 py-3.5 rounded-full font-bold text-base hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-pink-500/30 transform hover:-translate-y-1">
                   Get Started
                 </button>
               </a>
@@ -512,76 +512,76 @@ export default function Home() {
           <div className="flex justify-center relative">
             {/* Glowing background bubble behind image */}
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/20 to-blue-600/20 rounded-full filter blur-3xl opacity-60 scale-95"></div>
-            <img src="/images/icons/hero image.png" alt="Microstock Vector Art Illustration" className="max-w-full h-auto object-contain relative z-10 drop-shadow-[0_10px_10px_rgba(139,92,246,0.15)] animate-float" />
+            <img src="/images/icons/hero image.png" alt="Microstock Vector Art Illustration" className="max-w-full h-auto object-contain relative z-10 drop-shadow-[0_15px_15px_rgba(139,92,246,0.15)] animate-float" />
           </div>
         </div>
       </section>
 
       {/* 3 Simple Steps Section - Compact vertical padding */}
-      <section className="py-3 bg-[#090514] relative z-20">
+      <section className="py-8 bg-[#090514] relative z-20">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-1">Create Stock Metadata in 3 Simple Steps</h2>
-          <p className="text-center text-purple-300 text-xs mb-3">Generate professional SEO metadata in just a few clicks. No experience required.</p>
+          <h2 className="text-3xl font-bold text-center text-white mb-2">Create Stock Metadata in 3 Simple Steps</h2>
+          <p className="text-center text-purple-300 text-sm mb-6">Generate professional SEO metadata in just a few clicks. No experience required.</p>
           
           {/* Border-free layout with clean layout structure */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch relative">
             
             {/* Step 1 */}
-            <div className="flex flex-col items-center text-center p-2 select-none">
-              <span className="text-2xl font-extrabold text-purple-500 mb-0.5">1.</span>
-              <div className="flex flex-col items-center w-full mb-1">
-                <h3 className="text-lg font-bold text-white mb-1 tracking-wide">Upload Your Files</h3>
+            <div className="flex flex-col items-center text-center p-4 select-none">
+              <span className="text-3xl font-extrabold text-purple-500 mb-1">1.</span>
+              <div className="flex flex-col items-center w-full mb-3">
+                <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Upload Your Files</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+                <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
               </div>
               
-              <div className="w-36 h-20 flex items-center justify-center mb-2">
+              <div className="w-48 h-28 flex items-center justify-center mb-4">
                 <img src="/images/icons/Upload Your Files Icon.png" alt="Upload Files" className="max-w-full max-h-full object-contain pointer-events-none" />
               </div>
               
-              <p className="text-xs text-gray-400 leading-relaxed max-w-xs mt-1">
+              <p className="text-sm text-gray-400 leading-relaxed max-w-xs mt-2">
                 Easily upload your creative image, PNGs, vectors, and videos.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-center text-center p-2 select-none relative">
+            <div className="flex flex-col items-center text-center p-4 select-none relative">
               {/* Connector arrow for desktop layout */}
-              <div className="hidden md:block absolute -left-4 top-1/3 -translate-y-1/2 text-purple-900/40 text-xl font-bold pointer-events-none">➔</div>
+              <div className="hidden md:block absolute -left-6 top-1/3 -translate-y-1/2 text-purple-900/40 text-2xl font-bold pointer-events-none">➔</div>
               
-              <span className="text-2xl font-extrabold text-purple-500 mb-0.5">2.</span>
-              <div className="flex flex-col items-center w-full mb-1">
-                <h3 className="text-lg font-bold text-white mb-1 tracking-wide">Generate with AI</h3>
+              <span className="text-3xl font-extrabold text-purple-500 mb-1">2.</span>
+              <div className="flex flex-col items-center w-full mb-3">
+                <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Generate with AI</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+                <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
               </div>
               
-              <div className="w-36 h-20 flex items-center justify-center mb-2">
+              <div className="w-48 h-28 flex items-center justify-center mb-4">
                 <img src="/images/icons/Generation with AI & AI PowewredGeneration Icon.png" alt="Generate with AI" className="max-w-full max-h-full object-contain pointer-events-none" />
               </div>
               
-              <p className="text-xs text-gray-400 leading-relaxed max-w-xs mt-1">
+              <p className="text-sm text-gray-400 leading-relaxed max-w-xs mt-2">
                 Stock Meta Pro instantly creates SEO-friendly titles, keywords, and descriptions.
               </p>
             </div>
 
             {/* Step 3 */}
-            <div className="flex flex-col items-center text-center p-2 select-none relative">
+            <div className="flex flex-col items-center text-center p-4 select-none relative">
               {/* Connector arrow for desktop layout */}
-              <div className="hidden md:block absolute -left-4 top-1/3 -translate-y-1/2 text-purple-900/40 text-xl font-bold pointer-events-none">➔</div>
+              <div className="hidden md:block absolute -left-6 top-1/3 -translate-y-1/2 text-purple-900/40 text-2xl font-bold pointer-events-none">➔</div>
 
-              <span className="text-2xl font-extrabold text-purple-500 mb-0.5">3.</span>
-              <div className="flex flex-col items-center w-full mb-1">
-                <h3 className="text-lg font-bold text-white mb-1 tracking-wide">Embed & Upload</h3>
+              <span className="text-3xl font-extrabold text-purple-500 mb-1">3.</span>
+              <div className="flex flex-col items-center w-full mb-3">
+                <h3 className="text-xl font-bold text-white mb-2 tracking-wide">Embed & Upload</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+                <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
               </div>
               
-              <div className="w-36 h-20 flex items-center justify-center mb-2">
+              <div className="w-48 h-28 flex items-center justify-center mb-4">
                 <img src="/images/icons/Embed& Upload Icon.png" alt="Embed and Upload" className="max-w-full max-h-full object-contain pointer-events-none" />
               </div>
               
-              <p className="text-xs text-gray-400 leading-relaxed max-w-xs mt-1">
+              <p className="text-sm text-gray-400 leading-relaxed max-w-xs mt-2">
                 Embed metadata automatically and upload to your target stock marketplace.
               </p>
             </div>
@@ -591,19 +591,19 @@ export default function Home() {
       </section>
 
       {/* Pricing Section - Compact vertical padding */}
-      <section id="pricing" className="py-3 bg-[#090514] relative z-20">
+      <section id="pricing" className="py-8 bg-[#090514] relative z-20">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-1.5">Our Pricing Plan</h2>
+          <h2 className="text-3xl font-bold text-center text-white mb-3">Our Pricing Plan</h2>
           
           {/* Bangladesh - International Region Toggler */}
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-6">
             <div className="bg-[#0d091e] border border-purple-900/40 p-1 rounded-2xl flex gap-1">
               <button 
                 onClick={() => {
                   setPricingRegion('BD');
                   setSelectedCountry('Bangladesh');
                 }}
-                className={`px-5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 ${pricingRegion === 'BD' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
+                className={`px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${pricingRegion === 'BD' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
               >
                 🇧🇩 Bangladesh
               </button>
@@ -614,18 +614,18 @@ export default function Home() {
                     setSelectedCountry('United States'); // Set default international country
                   }
                 }}
-                className={`px-5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 ${pricingRegion === 'Global' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
+                className={`px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${pricingRegion === 'Global' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
               >
                 🌐 Global
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {plans.map((plan, idx) => (
               <div 
                 key={idx} 
-                className="bg-[#0d091e] border-2 rounded-3xl p-5 text-center relative flex flex-col transition-all duration-300 hover:scale-105 hover:border-purple-600 hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] border-[#1b1535]"
+                className="bg-[#0d091e] border-2 rounded-3xl p-8 text-center relative flex flex-col transition-all duration-300 hover:scale-105 hover:border-purple-600 hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] border-[#1b1535]"
               >
                 {/* Dynamic Off Corner Ribbon */}
                 <div className="absolute top-0 left-0 w-16 h-16 overflow-hidden rounded-tl-3xl">
@@ -636,20 +636,20 @@ export default function Home() {
 
                 {/* Popular Badge */}
                 {plan.name === 'Premium' && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg tracking-wider uppercase">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg tracking-wider uppercase">
                     Popular
                   </div>
                 )}
 
-                <div className="mt-2 flex flex-col h-full">
+                <div className="mt-4 flex flex-col h-full">
                   {/* Card Header */}
-                  <div className="flex justify-between items-start mb-3 text-left">
+                  <div className="flex justify-between items-start mb-6 text-left">
                     <div>
-                      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
-                      <p className="text-[11px] text-purple-400 mt-0.5">1 Credit = 1 Generation</p>
+                      <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+                      <p className="text-xs text-purple-400 mt-1">1 Credit = 1 Generation</p>
                     </div>
                     {/* Minimalist icon corner placeholder matching desktop apps icon style */}
-                    <div className="w-7 h-7 text-purple-400/50">
+                    <div className="w-8 h-8 text-purple-400/50">
                       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l8.982-5.025M9.813 15.904H19.5a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0019.5 3H4.5A2.25 2.25 0 002.25 5.25v10.5A2.25 2.25 0 004.5 18h3.313" />
                       </svg>
@@ -657,23 +657,23 @@ export default function Home() {
                   </div>
 
                   {/* Pricing block */}
-                  <div className="flex items-baseline justify-start gap-2 mb-3 text-left border-b border-purple-950/50 pb-3">
-                    <span className="text-xs text-gray-500 line-through">
+                  <div className="flex items-baseline justify-start gap-2 mb-6 text-left border-b border-purple-950/50 pb-6">
+                    <span className="text-sm text-gray-500 line-through">
                       {pricingRegion === 'BD' ? `৳${plan.regularPrice}` : `$${plan.usdRegularPrice?.toFixed(2)}`}
                     </span>
-                    <span className="text-4xl font-extrabold text-white">
+                    <span className="text-5xl font-extrabold text-white">
                       {pricingRegion === 'BD' ? `৳${plan.price}` : `$${plan.priceUsd?.toFixed(2)}`}
                     </span>
-                    <span className="text-purple-300 text-xs font-medium">/ {plan.duration}</span>
+                    <span className="text-purple-300 text-sm font-medium">/ {plan.duration}</span>
                   </div>
                   
                   {/* Credits Bubble */}
-                  <div className="bg-[#150f2f] border border-purple-900/40 py-2 rounded-xl mb-3 font-bold text-white flex items-center justify-center gap-2 text-sm">
+                  <div className="bg-[#150f2f] border border-purple-900/40 py-3 rounded-xl mb-6 font-bold text-white flex items-center justify-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-                    <span>{plan.credits.toLocaleString()} Credits</span>
+                    <span className="text-lg">{plan.credits.toLocaleString()} Credits</span>
                   </div>
                   
-                  <ul className="space-y-1.5 mb-4 text-left text-xs text-gray-300 flex-1">
+                  <ul className="space-y-3 mb-8 text-left text-xs text-gray-300 flex-1">
                     {[
                       'AI-Powered Metadata Generation',
                       'No Personal API Required',
@@ -684,7 +684,7 @@ export default function Home() {
                       'No Data losing/hijacking',
                       '24/7 Priority Tech Support'
                     ].map((feat, i) => (
-                      <li key={i} className="flex items-center gap-2">
+                      <li key={i} className="flex items-center gap-3">
                         <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
                         {feat}
                       </li>
@@ -693,7 +693,7 @@ export default function Home() {
 
                   <button 
                     onClick={() => handlePlanClick(plan)}
-                    className="w-full text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-purple-500/20 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800"
+                    className="w-full text-white py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-purple-500/20 bg-gradient-to-r from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800"
                   >
                     Get this Plan
                   </button>
@@ -705,10 +705,10 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-3 bg-[#090514]">
+      <section id="features" className="py-12 bg-[#090514]">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">Our Premium Feature</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <h2 className="text-4xl font-bold text-center text-white mb-10">Our Premium Feature</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {[
               { 
                 title: 'AI Metadata Generation', 
@@ -742,17 +742,17 @@ export default function Home() {
                 icon: '/images/icons/Secure File Processsing Icon.png'
               }
             ].map((feature, i) => (
-              <div key={i} className="bg-[#0d091e] p-4 rounded-xl shadow-sm hover:shadow-md text-center group transition-all relative border border-purple-950/40">
+              <div key={i} className="bg-[#0d091e] p-6 rounded-xl shadow-sm hover:shadow-md text-center group transition-all relative border border-purple-950/40">
                 {feature.badge && (
-                  <div className="absolute top-3 right-3 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  <div className="absolute top-4 right-4 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                     {feature.badge}
                   </div>
                 )}
-                <div className="w-14 h-14 mx-auto mb-2 flex items-center justify-center p-1">
+                <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center p-2">
                   <img src={feature.icon} alt={feature.title} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1">{feature.title}</h3>
-                <p className="text-gray-400 leading-relaxed text-xs">{feature.desc}</p>
+                <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                <p className="text-gray-400 leading-relaxed text-sm">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -760,12 +760,12 @@ export default function Home() {
       </section>
 
       {/* Why Choose Stock Meta Pro Section */}
-      <section className="py-3 bg-[#090514]">
+      <section className="py-12 bg-[#090514]">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Why Choose Stock Meta Pro?</h2>
-          <p className="text-purple-300 text-xs mb-4">The smart way to create SEO metadata with AI.</p>
+          <h2 className="text-4xl font-bold text-white mb-2">Why Choose Stock Meta Pro?</h2>
+          <p className="text-purple-300 text-sm mb-10">The smart way to create SEO metadata with AI.</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 max-w-4xl mx-auto text-center relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16 max-w-4xl mx-auto text-center relative">
             
             {/* Grid Helper lines: horizontal and vertical dividers matching screenshot */}
             <div className="hidden md:block absolute inset-0 pointer-events-none">
@@ -774,61 +774,61 @@ export default function Home() {
             </div>
 
             {/* Feature 1: AI-Powered Automation */}
-            <div className="flex flex-col items-center justify-between pb-2">
-              <div className="flex flex-col items-center mb-2">
-                <h3 className="text-base font-bold text-white mb-1">AI-Powered Automation</h3>
+            <div className="flex flex-col items-center justify-between pb-4">
+              <div className="flex flex-col items-center mb-4">
+                <h3 className="text-xl font-bold text-white mb-2">AI-Powered Automation</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-40 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
               </div>
-              <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <div className="w-24 h-24 flex items-center justify-center mb-6">
                 <img src="/images/icons/Generation with AI & AI PowewredGeneration Icon.png" alt="AI-Powered Automation" className="max-w-full max-h-full object-contain" />
               </div>
-              <p className="text-gray-400 text-xs leading-relaxed max-w-sm">Generate metadata instantly with advanced AI.</p>
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">Generate metadata instantly with advanced AI.</p>
             </div>
 
             {/* Feature 2: Boost Your Visibility */}
-            <div className="flex flex-col items-center justify-between pb-2">
-              <div className="flex flex-col items-center mb-2">
-                <h3 className="text-base font-bold text-white mb-1">Boost Your Visibility</h3>
+            <div className="flex flex-col items-center justify-between pb-4">
+              <div className="flex flex-col items-center mb-4">
+                <h3 className="text-xl font-bold text-white mb-2">Boost Your Visibility</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-40 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
               </div>
-              <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <div className="w-24 h-24 flex items-center justify-center mb-6">
                 <img src="/images/icons/Boost Your Visibility Icon.png" alt="Boost Your Visibility" className="max-w-full max-h-full object-contain" />
               </div>
-              <p className="text-gray-400 text-xs leading-relaxed max-w-sm">Improve search rankings & drive more downloads.</p>
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">Improve search rankings & drive more downloads.</p>
             </div>
 
             {/* Feature 3: Save Time & Effort */}
-            <div className="flex flex-col items-center justify-between pt-2">
-              <div className="flex flex-col items-center mb-2">
-                <h3 className="text-base font-bold text-white mb-1">Save Time & Effort</h3>
+            <div className="flex flex-col items-center justify-between pt-4">
+              <div className="flex flex-col items-center mb-4">
+                <h3 className="text-xl font-bold text-white mb-2">Save Time & Effort</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-40 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
               </div>
-              <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <div className="w-24 h-24 flex items-center justify-center mb-6">
                 <img src="/images/icons/Save time & Effort Icon.png" alt="Save Time & Effort" className="max-w-full max-h-full object-contain" />
               </div>
-              <p className="text-gray-400 text-xs leading-relaxed max-w-sm">Automate the process & focus on your business.</p>
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">Automate the process & focus on your business.</p>
             </div>
 
             {/* Feature 4: SEO Optimized Results */}
-            <div className="flex flex-col items-center justify-between pt-2">
-              <div className="flex flex-col items-center mb-2">
-                <h3 className="text-base font-bold text-white mb-1">SEO Optimized Results</h3>
+            <div className="flex flex-col items-center justify-between pt-4">
+              <div className="flex flex-col items-center mb-4">
+                <h3 className="text-xl font-bold text-white mb-2">SEO Optimized Results</h3>
                 {/* Bright purple faded underline margin */}
-                <div className="w-40 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
               </div>
-              <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <div className="w-24 h-24 flex items-center justify-center mb-6">
                 <img src="/images/icons/SEO Optimized Result Icon.png" alt="SEO Optimized Results" className="max-w-full max-h-full object-contain" />
               </div>
-              <p className="text-gray-400 text-xs leading-relaxed max-w-sm">Get SEO-friendly titles, keywords, & descriptions.</p>
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">Get SEO-friendly titles, keywords, & descriptions.</p>
             </div>
             </div>
 
           {/* Bottom highlight bar matching screenshot rectangular fade design */}
-          <div className="mt-8 relative w-full overflow-hidden py-3 bg-gradient-to-r from-transparent via-[#133273] to-transparent shadow-lg">
-            <p className="text-white text-sm md:text-base font-extrabold tracking-wide drop-shadow">
+          <div className="mt-20 relative w-full overflow-hidden py-5 bg-gradient-to-r from-transparent via-[#133273] to-transparent shadow-lg">
+            <p className="text-white text-base md:text-lg font-extrabold tracking-wide drop-shadow">
               Fast, Easy & Effective – Perfect for Microstock Contributors.
             </p>
           </div>
@@ -836,27 +836,27 @@ export default function Home() {
       </section>
 
       {/* Bottom CTA Section */}
-      <section className="py-6 bg-[#090514] text-white text-center">
-        <div className="flex flex-col items-center mb-2 px-4">
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to Boost Your SEO</h2>
+      <section className="py-20 bg-[#090514] text-white text-center">
+        <div className="flex flex-col items-center mb-4 px-4">
+          <h2 className="text-4xl font-bold mb-3">Ready to Boost Your SEO</h2>
           {/* Perfectly proportioned bright purple faded underline margin */}
           <div className="w-full max-w-md h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
         </div>
-        <p className="text-sm text-purple-300 mb-4 max-w-2xl mx-auto px-4 mt-1">
+        <p className="text-lg text-purple-300 mb-10 max-w-2xl mx-auto px-4 mt-2">
           Get Started with Stock Meta Pro Today!
         </p>
         <a href="#pricing">
-          <button className="bg-green-500 text-white px-8 py-2.5 rounded-full font-bold text-sm hover:bg-green-600 transition-colors shadow-lg">
+          <button className="bg-green-500 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-colors shadow-lg">
             Lets Go
           </button>
         </a>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 py-6 text-gray-400 text-xs">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="bg-gray-900 py-12 text-gray-400 text-sm">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <span className="text-lg font-bold text-white tracking-tight block mb-1">StockMeta<span className="text-green-500">Pro</span></span>
+            <span className="text-xl font-bold text-white tracking-tight block mb-2">StockMeta<span className="text-green-500">Pro</span></span>
             <a href="https://mail.google.com/mail/?view=cm&fs=1&to=stockmetapro@gmail.com&su=Support%20Request&body=Hello%20StockMetaPro%20Support," target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors block font-medium">stockmetapro@gmail.com</a>
           </div>
           <div className="flex gap-6">
