@@ -67,7 +67,7 @@ export default function About() {
             <h3 className="text-2xl font-bold text-[#1c3f6e] mb-4">Contact Information</h3>
             <div className="space-y-3 text-base">
               <p className="flex items-center gap-2">
-                <span>📧</span> <strong>Email:</strong> <a href="mailto:stockmetapro@gmail.com" className="text-blue-600 hover:underline">stockmetapro@gmail.com</a>
+                <span>📧</span> <strong>Email:</strong> <a href="https://mail.google.com/mail/?view=cm&fs=1&to=stockmetapro@gmail.com&su=Support%20Request&body=Hello%20StockMetaPro%20Support," target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">stockmetapro@gmail.com</a>
               </p>
               <p className="flex items-center gap-2">
                 <span>💬</span> <strong>WhatsApp:</strong> <a href="https://wa.me/8801980126826" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+8801980126826</a>
@@ -85,7 +85,7 @@ export default function About() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <span className="text-xl font-bold text-white tracking-tight block mb-2">StockMeta<span className="text-green-500">Pro</span></span>
-            <a href="mailto:stockmetapro@gmail.com" className="hover:text-white transition-colors block">stockmetapro@gmail.com</a>
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=stockmetapro@gmail.com&su=Support%20Request&body=Hello%20StockMetaPro%20Support," target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors block">stockmetapro@gmail.com</a>
           </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
