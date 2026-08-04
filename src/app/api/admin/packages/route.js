@@ -24,9 +24,16 @@ export async function GET() {
 export async function POST(request) {
   if (!(await checkAuth())) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   try {
-    const { name, credit_limit, price_tk, duration_days, is_popular } = await request.json();
+    const { name, credit_limit, price_tk, price_usd, duration_days, is_popular } = await request.json();
     await connectToDatabase();
-    const newPkg = await Package.create({ name, credit_limit, price_tk, duration_days, is_popular });
+    const newPkg = await Package.create({ 
+      name, 
+      credit_limit, 
+      price_tk, 
+      price_usd: price_usd !== undefined ? parseFloat(price_usd) : (name === 'Pro' ? 1.0 : (name === 'Premium' ? 2.0 : 3.0)), 
+      duration_days, 
+      is_popular 
+    });
     return NextResponse.json({ success: true, data: newPkg });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -49,7 +56,7 @@ export async function DELETE(request) {
 export async function PATCH(request) {
   if (!(await checkAuth())) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   try {
-    const { id, name, credit_limit, price_tk, duration_days, is_popular } = await request.json();
+    const { id, name, credit_limit, price_tk, price_usd, duration_days, is_popular } = await request.json();
     await connectToDatabase();
     const pkg = await Package.findById(id);
     if (!pkg) return NextResponse.json({ success: false, message: 'Package not found' }, { status: 404 });
@@ -57,6 +64,7 @@ export async function PATCH(request) {
     if (name) pkg.name = name;
     if (credit_limit) pkg.credit_limit = parseInt(credit_limit, 10);
     if (price_tk !== undefined) pkg.price_tk = parseInt(price_tk, 10);
+    if (price_usd !== undefined) pkg.price_usd = parseFloat(price_usd);
     if (duration_days) pkg.duration_days = parseInt(duration_days, 10);
     if (is_popular !== undefined) pkg.is_popular = is_popular;
 

@@ -72,24 +72,42 @@ export default function Home() {
       })
       .then(data => {
         if (data.success && data.data.length > 0) {
-          const usdPriceMap = { 'Pro': 1.0, 'Premium': 2.0, 'Max': 3.0 };
-          const usdRegularPriceMap = { 'Pro': 1.45, 'Premium': 2.6, 'Max': 4.3 };
           const regularPriceMap = { 'Pro': 145, 'Premium': 200, 'Max': 430 };
           const discountMap = { 'Pro': '30% OFF', 'Premium': '25% OFF', 'Max': '30% OFF' };
           const durationMap = { 'Pro': '1 Month', 'Premium': '1 Month', 'Max': '2 Months' };
-          const formattedPlans = data.data.map(pkg => ({
-            name: pkg.name,
-            price: pkg.price_tk,
-            priceUsd: (pkg.price_usd && pkg.price_usd > 1.0) ? pkg.price_usd : (usdPriceMap[pkg.name] || 1.0),
-            regularPrice: regularPriceMap[pkg.name] || (pkg.price_tk + 50),
-            usdRegularPrice: usdRegularPriceMap[pkg.name] || usdRegularPriceMap[pkg.name] || 1.45,
-            discount: discountMap[pkg.name] || '25% OFF',
-            duration: durationMap[pkg.name] || `${pkg.duration_days} Days`,
-            credits: pkg.credit_limit,
-            color: pkg.is_popular ? '#0c2e60' : (pkg.name === 'Max' ? '#eab308' : '#4caf50'),
-            popular: pkg.is_popular,
-            _id: pkg._id
-          }));
+          
+          const formattedPlans = data.data.map(pkg => {
+            const cleanName = (pkg.name || '').trim();
+            let finalUsd = 1.0;
+            if (cleanName === 'Pro') {
+              finalUsd = (pkg.price_usd && pkg.price_usd > 0) ? pkg.price_usd : 1.0;
+            } else if (cleanName === 'Premium') {
+              finalUsd = (pkg.price_usd && pkg.price_usd > 0 && pkg.price_usd !== 1.0) ? pkg.price_usd : 2.0;
+            } else if (cleanName === 'Max') {
+              finalUsd = (pkg.price_usd && pkg.price_usd > 0 && pkg.price_usd !== 1.0) ? pkg.price_usd : 3.0;
+            } else {
+              finalUsd = pkg.price_usd || 1.0;
+            }
+
+            let finalUsdRegular = 1.45;
+            if (cleanName === 'Pro') finalUsdRegular = 1.45;
+            else if (cleanName === 'Premium') finalUsdRegular = 2.60;
+            else if (cleanName === 'Max') finalUsdRegular = 4.30;
+
+            return {
+              name: pkg.name,
+              price: pkg.price_tk,
+              priceUsd: finalUsd,
+              regularPrice: regularPriceMap[cleanName] || (pkg.price_tk + 50),
+              usdRegularPrice: finalUsdRegular,
+              discount: discountMap[cleanName] || '25% OFF',
+              duration: durationMap[cleanName] || `${pkg.duration_days} Days`,
+              credits: pkg.credit_limit,
+              color: pkg.is_popular ? '#0c2e60' : (pkg.name === 'Max' ? '#eab308' : '#4caf50'),
+              popular: pkg.is_popular,
+              _id: pkg._id
+            };
+          });
           setPlans(formattedPlans);
         } else {
           setPlans([
