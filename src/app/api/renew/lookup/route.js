@@ -17,13 +17,12 @@ export async function POST(request) {
     // 0. Check if user is Blocked
     const BlockedUser = (await import('@/models/BlockedUser')).default;
     let cleanDigits = cleanIdentifier.replace(/\D/g, '');
-    if (cleanDigits.startsWith('880')) cleanDigits = cleanDigits.substring(3);
-    if (cleanDigits.startsWith('0')) cleanDigits = cleanDigits.substring(1);
+    const coreDigits = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
 
     const isBlocked = await BlockedUser.findOne({
       $or: [
         { email: cleanIdentifier.toLowerCase() },
-        ...(cleanDigits ? [{ mobile: { $regex: new RegExp(cleanDigits + '$') } }] : [])
+        ...(coreDigits ? [{ mobile: { $regex: new RegExp(coreDigits + '$') } }] : [])
       ]
     });
 
@@ -48,7 +47,7 @@ export async function POST(request) {
       status: 'Pending',
       $or: [
         { email: cleanIdentifier.toLowerCase() },
-        ...(cleanDigits ? [{ mobile: { $regex: new RegExp(cleanDigits + '$') } }] : [])
+        ...(coreDigits ? [{ mobile: { $regex: new RegExp(coreDigits + '$') } }] : [])
       ]
     }).populate('packageId');
 
@@ -75,19 +74,15 @@ export async function POST(request) {
     if (isEmail) {
       user = await User.findOne({ email: cleanIdentifier.toLowerCase() });
     } else if (isPhone) {
-      // Stripped digits matching
-      let digits = cleanIdentifier.replace(/\D/g, '');
-      if (digits.startsWith('880')) {
-        digits = digits.substring(3);
-      }
-      if (digits.startsWith('0')) {
-        digits = digits.substring(1);
-      }
-      const regexSearch = new RegExp(digits + '$');
-      user = await User.findOne({ mobile: { $regex: regexSearch } });
+      user = await User.findOne({
+        $or: [
+          { mobile: cleanIdentifier },
+          ...(coreDigits ? [{ mobile: { $regex: new RegExp(coreDigits + '$') } }] : [])
+        ]
+      });
     }
 
-    // 2. Search License by Key
+    // 2. Search License by Key or User ID
     let license = await License.findOne({
       $or: [
         { licenseKey: cleanIdentifier },
@@ -99,39 +94,39 @@ export async function POST(request) {
       license = await License.findOne({ userId: user._id }).populate('packageId');
     }
 
-    if (!license) {
+    if (!license && !user) {
       return NextResponse.json({ 
         success: false, 
         isLicenseKey,
-        message: 'No key found.' 
+        message: 'No user or license found.' 
       }, { status: 404 });
     }
 
     // Check if license is disabled
-    const isLicenseDisabled = license.status === 'Disabled' || license.status === 'disabled';
+    const isLicenseDisabled = license ? (license.status === 'Disabled' || license.status === 'disabled') : false;
 
     const now = new Date();
-    const expiry = license.expiresAt || license.expire_date;
-    const isActive = !isLicenseDisabled && (license.status === 'Active' || license.status === 'active') && new Date(expiry) > now;
-    const remainingCredits = license.currentCredits !== undefined ? license.currentCredits : Math.max(0, license.credit_limit - license.credits_used);
+    const expiry = license ? (license.expiresAt || license.expire_date) : null;
+    const isActive = license ? (!isLicenseDisabled && (license.status === 'Active' || license.status === 'active') && new Date(expiry) > now) : false;
+    const remainingCredits = license ? (license.currentCredits !== undefined ? license.currentCredits : Math.max(0, (license.credit_limit || 0) - (license.credits_used || 0))) : 0;
 
-    // If user info doesn't exist yet (maybe created via license upload), fetch or mock it
+    // If user info doesn't exist yet (maybe created via license upload), fetch or use resolved user
     let resolvedUser = user;
-    if (!resolvedUser && license.userId) {
+    if (!resolvedUser && license && license.userId) {
       resolvedUser = await User.findById(license.userId);
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        licenseKey: license.licenseKey || license.api_key,
-        status: license.status,
+        licenseKey: license ? (license.licenseKey || license.api_key) : '',
+        status: license ? license.status : 'Active',
         isActive,
         isLicenseDisabled,
         isLicenseKey,
         currentCredits: remainingCredits,
         expiresAt: expiry,
-        packageName: license.packageId ? license.packageId.name : 'Standard Plan',
+        packageName: (license && license.packageId) ? license.packageId.name : 'Standard Plan',
         userInfo: resolvedUser ? { _id: resolvedUser._id, name: resolvedUser.name, email: resolvedUser.email, mobile: resolvedUser.mobile } : null
       }
     });

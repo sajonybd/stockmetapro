@@ -59,6 +59,7 @@ export default function Home() {
   const [emailCheckStatus, setEmailCheckStatus] = useState('unchecked');
   const [mobileCheckMessage, setMobileCheckMessage] = useState('');
   const [emailCheckMessage, setEmailCheckMessage] = useState('');
+  const [isVerifyingUser, setIsVerifyingUser] = useState(false);
 
   useEffect(() => {
     fetch('/api/packages')
@@ -141,6 +142,7 @@ export default function Home() {
   const handleVerifyActiveUser = async () => {
     if (!activeUserPhone.trim()) return;
     setVerificationError('');
+    setIsVerifyingUser(true);
     try {
       const code = pricingRegion === 'BD' ? '+880' : (countryPrefixes.find(c => c.name === selectedCountry)?.code || '+1');
       
@@ -205,30 +207,31 @@ export default function Home() {
       }
 
       if (data.success) {
-        // Enforce country check: If user phone belongs to a different country code, reject and prompt to change country/region
+        // Enforce region check: If registered user belongs to a different country code, reject with warning to switch region
         const userMobile = data.data.userInfo?.mobile || '';
         const userDigits = userMobile.replace(/\D/g, '');
         const targetCleanCode = code.replace(/\D/g, ''); // e.g. "880" or "1"
 
-        // Check if user matches current region
         let isCountryMatched = false;
         if (pricingRegion === 'BD') {
           // BD user can have number starting with +880, 880, or 0
-          isCountryMatched = userMobile.startsWith('+880') || userMobile.startsWith('880') || (userMobile.startsWith('0') && userMobile.length === 11) || userDigits.length === 10;
+          isCountryMatched = userMobile.startsWith('+880') || userMobile.startsWith('880') || (userMobile.startsWith('0') && userMobile.length === 11) || (userDigits.length === 10 && userDigits.startsWith('1'));
         } else {
-          // Global user matches if mobile prefix starts with the selected country code
-          isCountryMatched = userMobile.startsWith(code) || userMobile.startsWith(code.replace('+', '')) || userDigits.startsWith(targetCleanCode);
+          // Global user matches if mobile starts with selected country code
+          isCountryMatched = userMobile.startsWith(code) || userMobile.startsWith(code.replace('+', '')) || (userMobile.startsWith('+') ? userMobile.startsWith(code) : userDigits.startsWith(targetCleanCode));
         }
 
         if (userMobile && !isCountryMatched) {
-          // Find registering country name from prefixes list
-          const matchedCountry = countryPrefixes.find(cp => userMobile.startsWith(cp.code) || userDigits.startsWith(cp.code.replace('+', '')));
-          const expectedLocation = matchedCountry ? matchedCountry.name : 'Bangladesh';
-          const expectedRegion = matchedCountry?.code === '+880' || !matchedCountry ? 'Bangladesh' : 'Global';
+          const isBDUser = userMobile.startsWith('+880') || userMobile.startsWith('880') || (userMobile.startsWith('0') && userMobile.length === 11) || (userDigits.length === 10 && userDigits.startsWith('1'));
+          const matchedCountry = countryPrefixes.find(cp => cp.code !== '+880' && (userMobile.startsWith(cp.code) || userDigits.startsWith(cp.code.replace('+', ''))));
+          const expectedLocation = isBDUser ? 'Bangladesh' : (matchedCountry ? matchedCountry.name : 'Global');
+          const expectedRegion = isBDUser ? 'Bangladesh' : 'Global';
+          const expectedCode = isBDUser ? '+880' : (matchedCountry?.code || '');
 
-          setVerificationError(`⚠️ This user is registered under ${expectedRegion} (${matchedCountry?.code || '+880'}). Please change pricing region or select '${expectedLocation}' to renew.`);
+          setVerificationError(`⚠️ This user is registered under ${expectedRegion} (${expectedCode}). Please change pricing region or select '${expectedLocation}' to renew.`);
           return;
         }
+
         setActiveUserFound(data.data);
         setPurchaseFlow({ ...purchaseFlow, step: 'active_user_details' });
       } else {
@@ -270,6 +273,8 @@ export default function Home() {
       }
     } catch (err) {
       setVerificationError('Error checking registered number. Please try again.');
+    } finally {
+      setIsVerifyingUser(false);
     }
   };
 
@@ -918,16 +923,25 @@ export default function Home() {
 
                 <div className="flex gap-4 mb-6">
                   <button 
+                    type="button"
+                    disabled={isVerifyingUser}
                     onClick={() => {
-                      if (!activeUserPhone.trim()) {
-                        alert('Please fill out the field first.');
-                        return;
-                      }
+                      if (!activeUserPhone.trim()) return;
                       handleVerifyActiveUser();
                     }}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 rounded-lg text-sm transition-all"
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3.5 rounded-lg text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    Submit & Verify
+                    {isVerifyingUser ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Verifying...
+                      </>
+                    ) : (
+                      'Submit & Verify'
+                    )}
                   </button>
                 </div>
 

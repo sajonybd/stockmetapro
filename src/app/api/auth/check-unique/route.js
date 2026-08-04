@@ -24,12 +24,13 @@ export async function POST(request) {
 
     if (field === 'mobile') {
       const cleanMobile = value.trim();
-      const cleanDigits = cleanMobile.replace(/\D/g, '').replace(/^880/, '').replace(/^0/, '');
+      const cleanDigits = cleanMobile.replace(/\D/g, '');
+      const coreDigits = cleanDigits.length >= 10 ? cleanDigits.slice(-10) : cleanDigits;
       
       const existingUsers = await User.find({
         $or: [
           { mobile: cleanMobile },
-          ...(cleanDigits ? [{ mobile: { $regex: new RegExp(cleanDigits + '$') } }] : [])
+          ...(coreDigits ? [{ mobile: { $regex: new RegExp(coreDigits + '$') } }] : [])
         ]
       });
 
@@ -39,10 +40,10 @@ export async function POST(request) {
         isUsed = !!hasLicense;
       }
 
-      if (cleanDigits) {
-        const blocked = await BlockedUser.findOne({ mobile: { $regex: new RegExp(cleanDigits + '$') } });
+      if (coreDigits) {
+        const blocked = await BlockedUser.findOne({ mobile: { $regex: new RegExp(coreDigits + '$') } });
         isBlocked = !!blocked;
-        const pending = await Payment.findOne({ status: 'Pending', mobile: { $regex: new RegExp(cleanDigits + '$') } });
+        const pending = await Payment.findOne({ status: 'Pending', mobile: { $regex: new RegExp(coreDigits + '$') } });
         isPending = !!pending;
       }
     } else if (field === 'email') {
