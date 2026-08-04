@@ -72,15 +72,17 @@ export default function Home() {
       })
       .then(data => {
         if (data.success && data.data.length > 0) {
+          const usdPriceMap = { 'Pro': 1.0, 'Premium': 2.0, 'Max': 3.0 };
+          const usdRegularPriceMap = { 'Pro': 1.45, 'Premium': 2.6, 'Max': 4.3 };
           const regularPriceMap = { 'Pro': 145, 'Premium': 200, 'Max': 430 };
           const discountMap = { 'Pro': '30% OFF', 'Premium': '25% OFF', 'Max': '30% OFF' };
           const durationMap = { 'Pro': '1 Month', 'Premium': '1 Month', 'Max': '2 Months' };
           const formattedPlans = data.data.map(pkg => ({
             name: pkg.name,
             price: pkg.price_tk,
-            priceUsd: pkg.price_usd || (pkg.name === 'Pro' ? 1.0 : (pkg.name === 'Premium' ? 2.0 : 3.0)),
+            priceUsd: (pkg.price_usd && pkg.price_usd > 1.0) ? pkg.price_usd : (usdPriceMap[pkg.name] || 1.0),
             regularPrice: regularPriceMap[pkg.name] || (pkg.price_tk + 50),
-            usdRegularPrice: pkg.name === 'Pro' ? 1.45 : (pkg.name === 'Premium' ? 2.6 : 4.3),
+            usdRegularPrice: usdRegularPriceMap[pkg.name] || usdRegularPriceMap[pkg.name] || 1.45,
             discount: discountMap[pkg.name] || '25% OFF',
             duration: durationMap[pkg.name] || `${pkg.duration_days} Days`,
             credits: pkg.credit_limit,
