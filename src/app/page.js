@@ -77,33 +77,41 @@ export default function Home() {
           const durationMap = { 'Pro': '1 Month', 'Premium': '1 Month', 'Max': '2 Months' };
           
           const formattedPlans = data.data.map(pkg => {
-            const cleanName = (pkg.name || '').trim();
+            const nameLower = (pkg.name || '').toLowerCase();
+            const isPro = nameLower.includes('pro');
+            const isPremium = nameLower.includes('premium');
+            const isMax = nameLower.includes('max');
+
             let finalUsd = 1.0;
-            if (cleanName === 'Pro') {
+            if (isPro) {
               finalUsd = (pkg.price_usd && pkg.price_usd > 0) ? pkg.price_usd : 1.0;
-            } else if (cleanName === 'Premium') {
+            } else if (isPremium) {
               finalUsd = (pkg.price_usd && pkg.price_usd > 0 && pkg.price_usd !== 1.0) ? pkg.price_usd : 2.0;
-            } else if (cleanName === 'Max') {
+            } else if (isMax) {
               finalUsd = (pkg.price_usd && pkg.price_usd > 0 && pkg.price_usd !== 1.0) ? pkg.price_usd : 3.0;
             } else {
               finalUsd = pkg.price_usd || 1.0;
             }
 
             let finalUsdRegular = 1.45;
-            if (cleanName === 'Pro') finalUsdRegular = 1.45;
-            else if (cleanName === 'Premium') finalUsdRegular = 2.60;
-            else if (cleanName === 'Max') finalUsdRegular = 4.30;
+            if (isPro) finalUsdRegular = 1.45;
+            else if (isPremium) finalUsdRegular = 2.60;
+            else if (isMax) finalUsdRegular = 4.30;
+
+            let regularPrice = isPro ? 145 : (isPremium ? 200 : (isMax ? 430 : pkg.price_tk + 50));
+            let discount = isPro ? '30% OFF' : (isPremium ? '25% OFF' : (isMax ? '30% OFF' : '25% OFF'));
+            let duration = isPro ? '1 Month' : (isPremium ? '1 Month' : (isMax ? '2 Months' : `${pkg.duration_days} Days`));
 
             return {
               name: pkg.name,
               price: pkg.price_tk,
               priceUsd: finalUsd,
-              regularPrice: regularPriceMap[cleanName] || (pkg.price_tk + 50),
+              regularPrice: regularPrice,
               usdRegularPrice: finalUsdRegular,
-              discount: discountMap[cleanName] || '25% OFF',
-              duration: durationMap[cleanName] || `${pkg.duration_days} Days`,
+              discount: discount,
+              duration: duration,
               credits: pkg.credit_limit,
-              color: pkg.is_popular ? '#0c2e60' : (pkg.name === 'Max' ? '#eab308' : '#4caf50'),
+              color: pkg.is_popular ? '#0c2e60' : (isMax ? '#eab308' : '#4caf50'),
               popular: pkg.is_popular,
               _id: pkg._id
             };
