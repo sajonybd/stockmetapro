@@ -179,43 +179,13 @@ export default function Home() {
         finalIdentifier = code + rawNum;
       }
 
-      // 1. Try to search using final formatted identifier (with selected prefix)
+      // Direct single fast database lookup (backend handles regex digit matching)
       let res = await fetch('/api/renew/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: finalIdentifier })
       });
       let data = await res.json();
-
-      // 2. If not found, try searching with raw digit version to catch cross-country matches
-      if (!data.success && !isEmail && !isLicenseKey && rawDigits) {
-        // Test BD database fallback
-        const fallbackBD = '+880' + rawDigits;
-        const resBD = await fetch('/api/renew/lookup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: fallbackBD })
-        });
-        const dataBD = await resBD.json();
-        if (dataBD.success) {
-          data = dataBD;
-        } else {
-          // Test Global database fallback using common code prefixes if not BD
-          for (const cp of countryPrefixes.filter(c => c.code !== '+880')) {
-            const fallbackGlobal = cp.code + rawDigits;
-            const resG = await fetch('/api/renew/lookup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ identifier: fallbackGlobal })
-            });
-            const dataG = await resG.json();
-            if (dataG.success) {
-              data = dataG;
-              break;
-            }
-          }
-        }
-      }
 
       if (data.isBlocked) {
         const bType = data.blockedType || (activeUserPhone.includes('@') ? 'email' : 'mobile');
