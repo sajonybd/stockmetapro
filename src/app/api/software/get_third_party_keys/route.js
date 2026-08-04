@@ -60,22 +60,26 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'All API keys are currently rate-limited. Please wait.' }, { status: 429 });
     }
 
-    // Sort keys by rpm_count ascending to pick the least loaded key (Round-Robin load balancing)
+    // Sort keys by rpm_count ascending to pick the least loaded keys (Round-Robin load balancing)
     evaluatedKeys.sort((a, b) => (a.rpm_count || 0) - (b.rpm_count || 0));
-    const selectedKey = evaluatedKeys[0];
+    
+    // Select top 2 keys (or 1 if only 1 key is active)
+    const selectedKeys = evaluatedKeys.slice(0, 2);
 
-    // Increment only the selected key's RPM
-    await ThirdPartyKey.updateOne(
-      { _id: selectedKey._id },
-      { $inc: { rpm_count: 1 } }
-    );
+    // Increment RPM count for all selected keys
+    for (const key of selectedKeys) {
+      await ThirdPartyKey.updateOne(
+        { _id: key._id },
+        { $inc: { rpm_count: 1 } }
+      );
+    }
 
     return NextResponse.json({ 
       success: true, 
-      keys: [{
-        service_name: selectedKey.service_name,
-        api_key: selectedKey.api_key
-      }] 
+      keys: selectedKeys.map(k => ({
+        service_name: k.service_name,
+        api_key: k.api_key
+      })) 
     });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
