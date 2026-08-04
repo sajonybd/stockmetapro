@@ -18,9 +18,9 @@ export async function POST(request) {
     const BlockedUser = (await import('@/models/BlockedUser')).default;
 
     const License = (await import('@/models/License')).default;
-
     const Payment = (await import('@/models/Payment')).default;
     let isPending = false;
+    let isDisabled = false;
 
     if (field === 'mobile') {
       const cleanMobile = value.trim();
@@ -38,6 +38,12 @@ export async function POST(request) {
         const userIds = existingUsers.map(u => u._id);
         const hasLicense = await License.findOne({ userId: { $in: userIds } });
         isUsed = !!hasLicense;
+
+        const disabledLicense = await License.findOne({ 
+          userId: { $in: userIds }, 
+          status: { $in: ['Disabled', 'disabled'] } 
+        });
+        isDisabled = !!disabledLicense;
       }
 
       if (coreDigits) {
@@ -52,11 +58,22 @@ export async function POST(request) {
       if (existing) {
         const hasLicense = await License.findOne({ userId: existing._id });
         isUsed = !!hasLicense;
+
+        const disabledLicense = await License.findOne({ 
+          userId: existing._id, 
+          status: { $in: ['Disabled', 'disabled'] } 
+        });
+        isDisabled = !!disabledLicense;
       }
       const blocked = await BlockedUser.findOne({ email: cleanEmail });
       isBlocked = !!blocked;
       const pending = await Payment.findOne({ status: 'Pending', email: cleanEmail });
       isPending = !!pending;
+    }
+
+    if (isDisabled) {
+      const msg = field === 'email' ? 'This email belongs to a disabled account. Please contact support.' : 'This number belongs to a disabled account. Please contact support.';
+      return NextResponse.json({ success: true, isUsed: true, isDisabled: true, message: msg });
     }
 
     if (isBlocked) {
@@ -69,7 +86,7 @@ export async function POST(request) {
       return NextResponse.json({ success: true, isUsed: true, isPending: true, message: msg });
     }
 
-    return NextResponse.json({ success: true, isUsed, isBlocked: false, isPending: false });
+    return NextResponse.json({ success: true, isUsed, isBlocked: false, isPending: false, isDisabled: false });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

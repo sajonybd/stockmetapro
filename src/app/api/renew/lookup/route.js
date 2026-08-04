@@ -105,6 +105,14 @@ export async function POST(request) {
     // Check if license is disabled
     const isLicenseDisabled = license ? (license.status === 'Disabled' || license.status === 'disabled') : false;
 
+    if (isLicenseDisabled) {
+      return NextResponse.json({
+        success: false,
+        isLicenseDisabled: true,
+        message: 'Your license/account is disabled. Please contact support.'
+      });
+    }
+
     const now = new Date();
     const expiry = license ? (license.expiresAt || license.expire_date) : null;
     const isActive = license ? (!isLicenseDisabled && (license.status === 'Active' || license.status === 'active') && new Date(expiry) > now) : false;

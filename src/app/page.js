@@ -189,6 +189,11 @@ export default function Home() {
       });
       let data = await res.json();
 
+      if (data.isLicenseDisabled || data.data?.isLicenseDisabled) {
+        setPurchaseFlow({ ...purchaseFlow, step: 'license_disabled_view' });
+        return;
+      }
+
       if (data.isBlocked) {
         const bType = data.blockedType || (activeUserPhone.includes('@') ? 'email' : 'mobile');
         setPurchaseFlow({ ...purchaseFlow, step: 'account_rejected_view', blockedType: bType });
@@ -384,8 +389,13 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.success) {
-        setMobileCheckStatus(data.isUsed ? 'invalid' : 'valid');
-        setMobileCheckMessage(data.message || (data.isUsed ? 'This mobile number is already registered or pending verification.' : ''));
+        if (data.isDisabled) {
+          setMobileCheckStatus('disabled');
+          setMobileCheckMessage(data.message || 'This mobile number belongs to a disabled account.');
+        } else {
+          setMobileCheckStatus(data.isUsed ? 'invalid' : 'valid');
+          setMobileCheckMessage(data.message || (data.isUsed ? 'This mobile number is already registered or pending verification.' : ''));
+        }
       } else {
         setMobileCheckStatus('unchecked');
         setMobileCheckMessage('');
@@ -411,8 +421,13 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.success) {
-        setEmailCheckStatus(data.isUsed ? 'invalid' : 'valid');
-        setEmailCheckMessage(data.message || (data.isUsed ? 'This email address is already registered or pending verification.' : ''));
+        if (data.isDisabled) {
+          setEmailCheckStatus('disabled');
+          setEmailCheckMessage(data.message || 'This email address belongs to a disabled account.');
+        } else {
+          setEmailCheckStatus(data.isUsed ? 'invalid' : 'valid');
+          setEmailCheckMessage(data.message || (data.isUsed ? 'This email address is already registered or pending verification.' : ''));
+        }
       } else {
         setEmailCheckStatus('unchecked');
         setEmailCheckMessage('');
@@ -1322,6 +1337,11 @@ export default function Home() {
                       <div className="relative">
                         <div className="flex justify-between items-center mb-1">
                           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Phone Number</label>
+                          {mobileCheckStatus === 'disabled' && (
+                            <span className="bg-amber-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow animate-bounce">
+                              disabled account
+                            </span>
+                          )}
                           {isPhoneInvalid && (
                             <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow animate-bounce">
                               recheck number
@@ -1336,6 +1356,8 @@ export default function Home() {
                         <div className={`relative flex items-center rounded-lg border overflow-hidden transition-all ${
                           isPhoneInvalid || mobileCheckStatus === 'invalid' 
                             ? 'border-red-500 ring-1 ring-red-500 bg-red-950/10' 
+                            : mobileCheckStatus === 'disabled'
+                            ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-950/10'
                             : mobileCheckStatus === 'valid' 
                             ? 'border-green-500 ring-1 ring-green-500 bg-green-950/10' 
                             : 'border-purple-950/30 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-500'
@@ -1381,8 +1403,8 @@ export default function Home() {
                             {mobileCheckStatus === 'valid' && (
                               <span className="text-green-500 font-bold text-sm" title="Available">✓</span>
                             )}
-                            {mobileCheckStatus === 'invalid' && (
-                              <span className="text-red-500 font-bold text-xs" title="Already Used">⚠️</span>
+                            {(mobileCheckStatus === 'invalid' || mobileCheckStatus === 'disabled') && (
+                              <span className="text-red-500 font-bold text-xs" title={mobileCheckStatus === 'disabled' ? "Disabled Account" : "Already Used"}>⚠️</span>
                             )}
                           </div>
                         </div>
@@ -1392,6 +1414,11 @@ export default function Home() {
                     <div className="mb-6 relative">
                       <div className="flex justify-between items-center mb-1">
                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
+                        {emailCheckStatus === 'disabled' && (
+                          <span className="bg-amber-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow animate-bounce">
+                            disabled account
+                          </span>
+                        )}
                         {emailCheckStatus === 'invalid' && (
                           <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow animate-bounce">
                             already used
@@ -1412,7 +1439,7 @@ export default function Home() {
                               setEmailCheckStatus('unchecked');
                             }
                           }}
-                          className={`w-full pl-4 pr-10 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${emailCheckStatus === 'invalid' ? 'border-red-500 focus:ring-red-500 bg-red-950/10' : emailCheckStatus === 'valid' ? 'border-green-500 focus:ring-green-500 bg-green-950/10' : 'border-purple-950/30 focus:ring-purple-500'}`} 
+                          className={`w-full pl-4 pr-10 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${emailCheckStatus === 'invalid' ? 'border-red-500 focus:ring-red-500 bg-red-950/10' : emailCheckStatus === 'disabled' ? 'border-amber-500 focus:ring-amber-500 bg-amber-950/10' : emailCheckStatus === 'valid' ? 'border-green-500 focus:ring-green-500 bg-green-950/10' : 'border-purple-950/30 focus:ring-purple-500'}`} 
                         />
                         {/* Inner Right Status Indicator */}
                         <div className="absolute right-3 flex items-center justify-center">
