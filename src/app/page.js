@@ -852,7 +852,7 @@ export default function Home() {
       {/* Features Section */}
       <section id="features" className="py-12 bg-[#090514]">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-white mb-10">Our Premium Feature</h2>
+          <h2 className="text-4xl font-bold text-center text-white mb-10">Our Premium Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {[
               { 
