@@ -154,13 +154,6 @@ export default function AdminPayments() {
         </button>
         <button 
           type="button"
-          onClick={() => setActiveTab('history')}
-          className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'history' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-        >
-          ✅ Payment History ({approvedPayments.length})
-        </button>
-        <button 
-          type="button"
           onClick={() => setActiveTab('sms_transactions')}
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'sms_transactions' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
