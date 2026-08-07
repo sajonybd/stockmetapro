@@ -40,9 +40,9 @@ export default function AdminPayments() {
   };
 
   const loadAllData = async () => {
-    setLoading(true);
-    await Promise.all([fetchPayments(), fetchTransactions(), fetchBlockedUsers()]);
-    setLoading(false);
+    fetchPayments().then(() => setLoading(false));
+    fetchTransactions();
+    fetchBlockedUsers();
   };
 
   useEffect(() => {

@@ -20,10 +20,11 @@ export async function GET() {
   try {
     await connectToDatabase();
     const payments = await Payment.find()
-      .populate('userId', 'name email')
+      .populate('userId', 'name email mobile')
       .populate('packageId', 'name credit_limit price_tk duration_days')
       .populate('licenseId', 'api_key status')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     return NextResponse.json({ success: true, data: payments });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

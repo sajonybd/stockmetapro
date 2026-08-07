@@ -47,11 +47,10 @@ export async function POST(request) {
           }, { status: 400 });
         }
         
-        // If user exists but has no license, update name if provided and link to it
-        if (name) {
-          user.name = name.trim();
-          await user.save();
-        }
+        // If user exists but has no license, update name and mobile if provided
+        if (name) user.name = name.trim();
+        if (mobile) user.mobile = mobile.trim();
+        await user.save();
       } else {
         // Create new user profile with a placeholder hashed password
         user = await User.create({
@@ -83,6 +82,8 @@ export async function POST(request) {
       expiresAt: expiry
     });
 
+    const populatedLicense = await License.findById(newLicense._id).populate('userId', 'name email mobile');
+
     // Send notification email to user if email was provided
     if (email && email.trim()) {
       try {
@@ -100,7 +101,7 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({ success: true, data: newLicense });
+    return NextResponse.json({ success: true, data: populatedLicense });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
