@@ -39,3 +39,20 @@ export async function DELETE(request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(request) {
+  if (!(await checkAuth())) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
+  try {
+    const { id, status } = await request.json();
+    if (!id || !status) {
+      return NextResponse.json({ success: false, message: 'Missing ID or status' }, { status: 400 });
+    }
+    await connectToDatabase();
+    const updated = await Transaction.findByIdAndUpdate(id, { status }, { new: true });
+    return NextResponse.json({ success: true, message: 'Status updated successfully', data: updated });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}

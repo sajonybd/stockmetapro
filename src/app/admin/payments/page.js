@@ -88,6 +88,25 @@ export default function AdminPayments() {
     }
   };
 
+  const toggleTransactionStatus = async (id, currentStatus) => {
+    const newStatus = (currentStatus === 'Matched') ? 'Unused' : 'Matched';
+    try {
+      const res = await fetch('/api/admin/transactions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchTransactions();
+      } else {
+        alert(`Failed: ${data.message}`);
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
   const unblockUser = async (id) => {
     if (!confirm('Are you sure you want to unblock this user and allow account access again?')) return;
     try {
@@ -114,29 +133,29 @@ export default function AdminPayments() {
 
   const pendingPayments = payments.filter(p => p.status === 'Pending');
   const approvedPayments = payments.filter(p => p.status === 'Approved');
+  const unusedTxCount = transactions.filter(t => t.status === 'Unused' || !t.status).length;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Payments & Access</h1>
-          <p className="text-sm text-gray-500 mt-1">Approve pending subscription payments, manage user blocklists, track custom SMS and payment logs.</p>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Manage Payments & Access</h1>
+        <p className="text-sm text-gray-500 mt-1">Approve pending subscription payments, manage user blocklists, track custom SMS and payment logs.</p>
       </div>
 
-      {/* Tab Selection Row */}
-      <div className="flex border-b border-gray-200 mb-6 gap-2 flex-wrap">
+      {/* Tabs Control */}
+      <div className="flex border-b border-gray-200 mb-6 gap-2">
         <button 
           type="button"
           onClick={() => setActiveTab('payments')}
-          className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'payments' ? 'border-[#1f934b] text-[#1f934b]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'payments' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
           🕒 Pending Payments ({pendingPayments.length})
         </button>
         <button 
           type="button"
           onClick={() => setActiveTab('history')}
-          className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'history' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'history' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
           ✅ Payment History ({approvedPayments.length})
         </button>
@@ -145,7 +164,7 @@ export default function AdminPayments() {
           onClick={() => setActiveTab('sms_transactions')}
           className={`px-5 py-2.5 font-bold text-sm border-b-2 transition-all ${activeTab === 'sms_transactions' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
-          💬 Phone SMS Transactions ({transactions.length})
+          💬 Phone SMS Transactions ({unusedTxCount})
         </button>
         <button 
           type="button"
@@ -359,12 +378,25 @@ export default function AdminPayments() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button
-                        onClick={() => deleteTransaction(tx._id)}
-                        className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1 rounded text-xs font-bold transition-all"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => toggleTransactionStatus(tx._id, tx.status || 'Unused')}
+                          className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                            tx.status === 'Matched' 
+                              ? 'bg-blue-100 hover:bg-blue-200 text-blue-700' 
+                              : 'bg-amber-100 hover:bg-amber-200 text-amber-800'
+                          }`}
+                          title="Click to toggle status"
+                        >
+                          {tx.status === 'Matched' ? 'Mark Unused' : 'Mark Used'}
+                        </button>
+                        <button
+                          onClick={() => deleteTransaction(tx._id)}
+                          className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1 rounded text-xs font-bold transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
