@@ -14,19 +14,10 @@ const createTransporter = () => {
   });
 };
 
-// Dynamic helper to fetch the latest download URL directly from /api/software/check_update route
+import { SOFTWARE_DOWNLOAD_URL } from '@/lib/config/softwareConfig';
+
 async function getLatestDownloadLink() {
-  try {
-    const { GET } = await import('@/app/api/software/check_update/route');
-    const response = await GET();
-    const data = await response.json();
-    if (data && data.download_url) {
-      return data.download_url;
-    }
-  } catch (err) {
-    console.error('[EmailService] Failed to fetch dynamic update link, using fallback:', err.message);
-  }
-  return process.env.NEXT_PUBLIC_APP_DOWNLOAD_LINK || 'https://github.com/sajonybd/stockmetapro/releases/download/v1.0.0.1/StockMetaPro_Setup.exe';
+  return SOFTWARE_DOWNLOAD_URL;
 }
 
 /**
