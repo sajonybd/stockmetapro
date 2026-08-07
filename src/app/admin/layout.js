@@ -46,6 +46,9 @@ export default async function AdminLayout({ children }) {
           <Link href="/admin/notice" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
             Software Notice
           </Link>
+          <Link href="/admin/app-info" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium text-cyan-600">
+            Latest App Info
+          </Link>
           <Link href="/admin/docs" className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors font-medium">
             Developer API Docs
           </Link>
