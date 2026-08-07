@@ -5,28 +5,166 @@ import Link from 'next/link';
 
 // Country code, prefixes, and exact digit length validation mapping parameters
 const countryPrefixes = [
-  { code: '+880', name: 'Bangladesh', short: 'BD', length: 11 },
-  { code: '+1', name: 'United States', short: 'US', length: 10 },
-  { code: '+44', name: 'United Kingdom', short: 'GB', length: 10 },
-  { code: '+91', name: 'India', short: 'IN', length: 10 },
-  { code: '+92', name: 'Pakistan', short: 'PK', length: 10 },
-  { code: '+60', name: 'Malaysia', short: 'MY', length: 9 },
-  { code: '+62', name: 'Indonesia', short: 'ID', length: 10 },
-  { code: '+966', name: 'Saudi Arabia', short: 'SA', length: 9 },
-  { code: '+971', name: 'United Arab Emirates', short: 'AE', length: 9 },
-  { code: '+65', name: 'Singapore', short: 'SG', length: 8 },
-  { code: '+81', name: 'Japan', short: 'JP', length: 10 },
-  { code: '+82', name: 'South Korea', short: 'KR', length: 10 },
-  { code: '+1', name: 'Canada', short: 'CA', length: 10 },
-  { code: '+61', name: 'Australia', short: 'AU', length: 9 },
-  { code: '+49', name: 'Germany', short: 'DE', length: 10 },
-  { code: '+33', name: 'France', short: 'FR', length: 9 },
-  { code: '+39', name: 'Italy', short: 'IT', length: 10 },
-  { code: '+34', name: 'Spain', short: 'ES', length: 9 },
-  { code: '+7', name: 'Russia', short: 'RU', length: 10 },
-  { code: '+55', name: 'Brazil', short: 'BR', length: 11 },
-  { code: '+90', name: 'Turkey', short: 'TR', length: 10 },
+  { code: '+880', name: 'Bangladesh', short: 'BD', length: 11 }, // Default
+  { code: '+93',  name: 'Afghanistan', short: 'AF', length: 9  },
+  { code: '+355', name: 'Albania', short: 'AL', length: 9  },
+  { code: '+213', name: 'Algeria', short: 'DZ', length: 9  },
+  { code: '+376', name: 'Andorra', short: 'AD', length: 6  },
+  { code: '+244', name: 'Angola', short: 'AO', length: 9  },
+  { code: '+54',  name: 'Argentina', short: 'AR', length: 10 },
+  { code: '+374', name: 'Armenia', short: 'AM', length: 8  },
+  { code: '+61',  name: 'Australia', short: 'AU', length: 9  },
+  { code: '+43',  name: 'Austria', short: 'AT', length: 10 },
+  { code: '+994', name: 'Azerbaijan', short: 'AZ', length: 9  },
+  { code: '+973', name: 'Bahrain', short: 'BH', length: 8  },
+  { code: '+375', name: 'Belarus', short: 'BY', length: 9  },
+  { code: '+32',  name: 'Belgium', short: 'BE', length: 9  },
+  { code: '+501', name: 'Belize', short: 'BZ', length: 7  },
+  { code: '+229', name: 'Benin', short: 'BJ', length: 8  },
+  { code: '+975', name: 'Bhutan', short: 'BT', length: 8  },
+  { code: '+591', name: 'Bolivia', short: 'BO', length: 8  },
+  { code: '+387', name: 'Bosnia and Herzegovina', short: 'BA', length: 8 },
+  { code: '+267', name: 'Botswana', short: 'BW', length: 8  },
+  { code: '+55',  name: 'Brazil', short: 'BR', length: 11 },
+  { code: '+673', name: 'Brunei', short: 'BN', length: 7  },
+  { code: '+359', name: 'Bulgaria', short: 'BG', length: 9  },
+  { code: '+226', name: 'Burkina Faso', short: 'BF', length: 8  },
+  { code: '+257', name: 'Burundi', short: 'BI', length: 8  },
+  { code: '+855', name: 'Cambodia', short: 'KH', length: 9  },
+  { code: '+237', name: 'Cameroon', short: 'CM', length: 9  },
+  { code: '+1',   name: 'Canada', short: 'CA', length: 10 },
+  { code: '+238', name: 'Cape Verde', short: 'CV', length: 7  },
+  { code: '+236', name: 'Central African Republic', short: 'CF', length: 8 },
+  { code: '+235', name: 'Chad', short: 'TD', length: 8  },
+  { code: '+56',  name: 'Chile', short: 'CL', length: 9  },
+  { code: '+86',  name: 'China', short: 'CN', length: 11 },
+  { code: '+57',  name: 'Colombia', short: 'CO', length: 10 },
+  { code: '+269', name: 'Comoros', short: 'KM', length: 7  },
+  { code: '+242', name: 'Congo', short: 'CG', length: 9  },
+  { code: '+506', name: 'Costa Rica', short: 'CR', length: 8  },
+  { code: '+385', name: 'Croatia', short: 'HR', length: 9  },
+  { code: '+53',  name: 'Cuba', short: 'CU', length: 8  },
+  { code: '+357', name: 'Cyprus', short: 'CY', length: 8  },
+  { code: '+420', name: 'Czech Republic', short: 'CZ', length: 9  },
+  { code: '+45',  name: 'Denmark', short: 'DK', length: 8  },
+  { code: '+253', name: 'Djibouti', short: 'DJ', length: 6  },
+  { code: '+593', name: 'Ecuador', short: 'EC', length: 9  },
+  { code: '+20',  name: 'Egypt', short: 'EG', length: 10 },
+  { code: '+503', name: 'El Salvador', short: 'SV', length: 8  },
+  { code: '+240', name: 'Equatorial Guinea', short: 'GQ', length: 9  },
+  { code: '+291', name: 'Eritrea', short: 'ER', length: 7  },
+  { code: '+372', name: 'Estonia', short: 'EE', length: 8  },
+  { code: '+251', name: 'Ethiopia', short: 'ET', length: 9  },
+  { code: '+679', name: 'Fiji', short: 'FJ', length: 7  },
+  { code: '+358', name: 'Finland', short: 'FI', length: 9  },
+  { code: '+33',  name: 'France', short: 'FR', length: 9  },
+  { code: '+241', name: 'Gabon', short: 'GA', length: 7  },
+  { code: '+220', name: 'Gambia', short: 'GM', length: 7  },
+  { code: '+995', name: 'Georgia', short: 'GE', length: 9  },
+  { code: '+49',  name: 'Germany', short: 'DE', length: 10 },
+  { code: '+233', name: 'Ghana', short: 'GH', length: 9  },
+  { code: '+30',  name: 'Greece', short: 'GR', length: 10 },
+  { code: '+502', name: 'Guatemala', short: 'GT', length: 8  },
+  { code: '+224', name: 'Guinea', short: 'GN', length: 9  },
+  { code: '+592', name: 'Guyana', short: 'GY', length: 7  },
+  { code: '+509', name: 'Haiti', short: 'HT', length: 8  },
+  { code: '+504', name: 'Honduras', short: 'HN', length: 8  },
+  { code: '+852', name: 'Hong Kong', short: 'HK', length: 8  },
+  { code: '+36',  name: 'Hungary', short: 'HU', length: 9  },
+  { code: '+354', name: 'Iceland', short: 'IS', length: 7  },
+  { code: '+91',  name: 'India', short: 'IN', length: 10 },
+  { code: '+62',  name: 'Indonesia', short: 'ID', length: 10 },
+  { code: '+98',  name: 'Iran', short: 'IR', length: 10 },
+  { code: '+964', name: 'Iraq', short: 'IQ', length: 10 },
+  { code: '+353', name: 'Ireland', short: 'IE', length: 9  },
+  { code: '+972', name: 'Israel', short: 'IL', length: 9  },
+  { code: '+39',  name: 'Italy', short: 'IT', length: 10 },
+  { code: '+225', name: 'Ivory Coast', short: 'CI', length: 8  },
+  { code: '+1876',name: 'Jamaica', short: 'JM', length: 7  },
+  { code: '+81',  name: 'Japan', short: 'JP', length: 10 },
+  { code: '+962', name: 'Jordan', short: 'JO', length: 9  },
+  { code: '+7',   name: 'Kazakhstan', short: 'KZ', length: 10 },
+  { code: '+254', name: 'Kenya', short: 'KE', length: 9  },
+  { code: '+965', name: 'Kuwait', short: 'KW', length: 8  },
+  { code: '+996', name: 'Kyrgyzstan', short: 'KG', length: 9  },
+  { code: '+856', name: 'Laos', short: 'LA', length: 8  },
+  { code: '+371', name: 'Latvia', short: 'LV', length: 8  },
+  { code: '+961', name: 'Lebanon', short: 'LB', length: 8  },
+  { code: '+218', name: 'Libya', short: 'LY', length: 8  },
+  { code: '+370', name: 'Lithuania', short: 'LT', length: 8  },
+  { code: '+352', name: 'Luxembourg', short: 'LU', length: 9  },
+  { code: '+853', name: 'Macau', short: 'MO', length: 8  },
+  { code: '+389', name: 'Macedonia', short: 'MK', length: 8  },
+  { code: '+261', name: 'Madagascar', short: 'MG', length: 9  },
+  { code: '+265', name: 'Malawi', short: 'MW', length: 9  },
+  { code: '+60',  name: 'Malaysia', short: 'MY', length: 9  },
+  { code: '+960', name: 'Maldives', short: 'MV', length: 7  },
+  { code: '+223', name: 'Mali', short: 'ML', length: 8  },
+  { code: '+356', name: 'Malta', short: 'MT', length: 8  },
+  { code: '+222', name: 'Mauritania', short: 'MR', length: 8  },
+  { code: '+230', name: 'Mauritius', short: 'MU', length: 7  },
+  { code: '+52',  name: 'Mexico', short: 'MX', length: 10 },
+  { code: '+373', name: 'Moldova', short: 'MD', length: 8  },
+  { code: '+976', name: 'Mongolia', short: 'MN', length: 8  },
+  { code: '+382', name: 'Montenegro', short: 'ME', length: 8  },
+  { code: '+212', name: 'Morocco', short: 'MA', length: 9  },
+  { code: '+258', name: 'Mozambique', short: 'MZ', length: 9  },
+  { code: '+95',  name: 'Myanmar', short: 'MM', length: 9  },
+  { code: '+264', name: 'Namibia', short: 'NA', length: 9  },
+  { code: '+977', name: 'Nepal', short: 'NP', length: 10 },
+  { code: '+31',  name: 'Netherlands', short: 'NL', length: 9  },
+  { code: '+64',  name: 'New Zealand', short: 'NZ', length: 9  },
+  { code: '+505', name: 'Nicaragua', short: 'NI', length: 8  },
+  { code: '+227', name: 'Niger', short: 'NE', length: 8  },
+  { code: '+234', name: 'Nigeria', short: 'NG', length: 10 },
+  { code: '+47',  name: 'Norway', short: 'NO', length: 8  },
+  { code: '+968', name: 'Oman', short: 'OM', length: 8  },
+  { code: '+92',  name: 'Pakistan', short: 'PK', length: 10 },
+  { code: '+970', name: 'Palestine', short: 'PS', length: 9  },
+  { code: '+507', name: 'Panama', short: 'PA', length: 8  },
+  { code: '+595', name: 'Paraguay', short: 'PY', length: 9  },
+  { code: '+51',  name: 'Peru', short: 'PE', length: 9  },
+  { code: '+63',  name: 'Philippines', short: 'PH', length: 10 },
+  { code: '+48',  name: 'Poland', short: 'PL', length: 9  },
+  { code: '+351', name: 'Portugal', short: 'PT', length: 9  },
+  { code: '+974', name: 'Qatar', short: 'QA', length: 8  },
+  { code: '+40',  name: 'Romania', short: 'RO', length: 10 },
+  { code: '+7',   name: 'Russia', short: 'RU', length: 10 },
+  { code: '+250', name: 'Rwanda', short: 'RW', length: 9  },
+  { code: '+966', name: 'Saudi Arabia', short: 'SA', length: 9  },
+  { code: '+221', name: 'Senegal', short: 'SN', length: 9  },
+  { code: '+381', name: 'Serbia', short: 'RS', length: 9  },
+  { code: '+65',  name: 'Singapore', short: 'SG', length: 8  },
+  { code: '+421', name: 'Slovakia', short: 'SK', length: 9  },
+  { code: '+386', name: 'Slovenia', short: 'SI', length: 8  },
+  { code: '+27',  name: 'South Africa', short: 'ZA', length: 9  },
+  { code: '+82',  name: 'South Korea', short: 'KR', length: 10 },
+  { code: '+34',  name: 'Spain', short: 'ES', length: 9  },
+  { code: '+94',  name: 'Sri Lanka', short: 'LK', length: 9  },
+  { code: '+249', name: 'Sudan', short: 'SD', length: 9  },
+  { code: '+46',  name: 'Sweden', short: 'SE', length: 9  },
+  { code: '+41',  name: 'Switzerland', short: 'CH', length: 9  },
+  { code: '+963', name: 'Syria', short: 'SY', length: 9  },
+  { code: '+886', name: 'Taiwan', short: 'TW', length: 9  },
+  { code: '+992', name: 'Tajikistan', short: 'TJ', length: 9  },
+  { code: '+255', name: 'Tanzania', short: 'TZ', length: 9  },
+  { code: '+66',  name: 'Thailand', short: 'TH', length: 9  },
+  { code: '+216', name: 'Tunisia', short: 'TN', length: 8  },
+  { code: '+90',  name: 'Turkey', short: 'TR', length: 10 },
+  { code: '+256', name: 'Uganda', short: 'UG', length: 9  },
+  { code: '+380', name: 'Ukraine', short: 'UA', length: 9  },
+  { code: '+971', name: 'United Arab Emirates', short: 'AE', length: 9  },
+  { code: '+44',  name: 'United Kingdom', short: 'GB', length: 10 },
+  { code: '+1',   name: 'United States', short: 'US', length: 10 },
+  { code: '+598', name: 'Uruguay', short: 'UY', length: 8  },
+  { code: '+998', name: 'Uzbekistan', short: 'UZ', length: 9  },
+  { code: '+58',  name: 'Venezuela', short: 'VE', length: 10 },
+  { code: '+84',  name: 'Vietnam', short: 'VN', length: 9  },
+  { code: '+967', name: 'Yemen', short: 'YE', length: 9  },
+  { code: '+260', name: 'Zambia', short: 'ZM', length: 9  },
+  { code: '+263', name: 'Zimbabwe', short: 'ZW', length: 9  }
 ];
+
 
 export default function Home() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
@@ -311,6 +449,7 @@ export default function Home() {
     }
   };
 
+
   const handlePaymentSubmit = async () => {
     if (!selectedMethod) {
       alert('Please select a payment method');
@@ -352,18 +491,20 @@ export default function Home() {
       };
 
       const isGlobalMethod = ['Payoneer', 'Skrill'].includes(selectedMethod);
+      const currentAttempt = submitAttempts + 1;
 
       const res = await fetch('/api/user/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...payload,
-          bypass_sms: isGlobalMethod || submitAttempts >= 1 // Payoneer & Skrill go directly to Admin approval on 1st submit
+          attempt: currentAttempt,
+          bypass_sms: isGlobalMethod // Global payments bypass SMS verification
         })
       });
       const data = await res.json();
 
-      // Enforce at least 2 seconds of loading animation to make it look smooth and clear
+      // Processing loader delay for clean feedback
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       if (data.success) {
@@ -372,16 +513,18 @@ export default function Home() {
           ...purchaseFlow, 
           step: 'payment_success',
           isAutoApproved: data.isAutoApproved,
-          message: data.message
+          message: data.message,
+          pendingDetails: {
+            trx_id: finalTrxId,
+            amount: payload.amount
+          }
         });
+      } else if (data.notVerified) {
+        // 1st Attempt failed -> Show Orange/Yellow alert and Resubmit tag
+        setSubmitAttempts(currentAttempt);
+        setIsTrxInvalid(true);
       } else {
-        if (submitAttempts < 1) {
-          const nextAttemptCount = submitAttempts + 1;
-          setSubmitAttempts(nextAttemptCount);
-          setIsTrxInvalid(true);
-        } else {
-          alert(data.message || 'Payment processing failed. Please check details.');
-        }
+        alert(data.message || 'Payment processing failed. Please check details.');
       }
     } catch (err) {
       alert('Network error occurred: ' + err.message);
@@ -605,7 +748,8 @@ export default function Home() {
                 }}
                 className={`px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${pricingRegion === 'BD' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
               >
-                🇧🇩 Bangladesh
+                <img src="/images/icons/bangladesh.png" alt="Bangladesh Flag" className="w-5 h-4 object-contain rounded-sm" />
+                Bangladesh
               </button>
               <button 
                 onClick={() => {
@@ -616,7 +760,8 @@ export default function Home() {
                 }}
                 className={`px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${pricingRegion === 'Global' ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
               >
-                🌐 Global
+                <img src="/images/icons/global.png" alt="Global Icon" className="w-5 h-5 object-contain" />
+                Global
               </button>
             </div>
           </div>
@@ -827,7 +972,7 @@ export default function Home() {
             </div>
 
           {/* Bottom highlight bar matching screenshot rectangular fade design */}
-          <div className="mt-20 relative w-full overflow-hidden py-5 bg-gradient-to-r from-transparent via-[#133273] to-transparent shadow-lg">
+          <div className="mt-16 relative w-full overflow-hidden py-5 bg-gradient-to-r from-transparent via-[#133273] to-transparent shadow-lg">
             <p className="text-white text-base md:text-lg font-extrabold tracking-wide drop-shadow">
               Fast, Easy & Effective – Perfect for Microstock Contributors.
             </p>
@@ -836,13 +981,13 @@ export default function Home() {
       </section>
 
       {/* Bottom CTA Section */}
-      <section className="py-20 bg-[#090514] text-white text-center">
+      <section className="pt-2 pb-12 bg-[#090514] text-white text-center">
         <div className="flex flex-col items-center mb-4 px-4">
           <h2 className="text-4xl font-bold mb-3">Ready to Boost Your SEO</h2>
           {/* Perfectly proportioned bright purple faded underline margin */}
           <div className="w-full max-w-md h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
         </div>
-        <p className="text-lg text-purple-300 mb-10 max-w-2xl mx-auto px-4 mt-2">
+        <p className="text-lg text-purple-300 mb-6 max-w-2xl mx-auto px-4 mt-2">
           Get Started with Stock Meta Pro Today!
         </p>
         <a href="#pricing">
@@ -909,6 +1054,20 @@ export default function Home() {
             <button onClick={closePurchaseFlow} className="absolute top-4 right-4 text-gray-400 hover:text-white">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
+
+            {/* Centered Glassmorphism Processing Loader overlay */}
+            {isPaymentSubmitting && (
+              <div className="absolute inset-0 bg-[#0d091e]/90 backdrop-blur-md z-[60] rounded-2xl flex flex-col items-center justify-center gap-4">
+                <div className="relative flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full border-4 border-purple-900/30 border-t-purple-500 animate-spin"></div>
+                  <div className="absolute w-10 h-10 rounded-full border-4 border-indigo-900/30 border-t-indigo-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-lg tracking-wide animate-pulse">Processing...</p>
+                  <p className="text-purple-300 text-xs mt-1">Verifying payment credentials</p>
+                </div>
+              </div>
+            )}
             
             {purchaseFlow.step === 'select_country' && (
               <div className="text-center animate-[slideLeft_0.3s_ease-out]">
@@ -1656,10 +1815,15 @@ export default function Home() {
                     </span>
                   </div>
 
-                  {/* Input Form Fields (Conditional layout based on Selected Method type) */}
-                  {isTrxInvalid && (
-                    <div className="text-red-500 font-bold text-xs mb-3 animate-[pulse_1s_infinite] flex items-center gap-1">
-                      <span>⚠️</span> Please recheck your transaction number / ID
+                  {/* Popup shown above TrxID input when 1st attempt fails */}
+                  {isTrxInvalid && submitAttempts >= 1 && (
+                    <div className="relative mb-2 animate-[slideLeft_0.3s_ease-out] w-fit">
+                      <div className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg shadow-red-600/30">
+                        <span>⚠️</span>
+                        <span>Recheck & Submit Again</span>
+                      </div>
+                      {/* Down-arrow pointer */}
+                      <div className="absolute left-6 -bottom-1 w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-l-transparent border-r-transparent border-t-red-600"></div>
                     </div>
                   )}
 
@@ -1676,7 +1840,7 @@ export default function Home() {
                             setTrxId(e.target.value); // Sync to payload to satisfy API models validations
                             setIsTrxInvalid(false); // Reset border on type
                           }}
-                          className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-red-500 focus:ring-red-500 bg-red-950/10' : 'border-purple-900/40 focus:ring-purple-500'}`}
+                          className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-amber-500 focus:ring-amber-500 bg-amber-950/5' : 'border-purple-900/40 focus:ring-purple-500'}`}
                         />
                       </div>
                       <div>
@@ -1689,7 +1853,7 @@ export default function Home() {
                             setReferenceNote(e.target.value);
                             setIsTrxInvalid(false); // Reset border on type
                           }}
-                          className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-red-500 focus:ring-red-500 bg-red-950/10' : 'border-purple-900/40 focus:ring-purple-500'}`}
+                          className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-amber-500 focus:ring-amber-500 bg-amber-950/5' : 'border-purple-900/40 focus:ring-purple-500'}`}
                         />
                       </div>
                     </div>
@@ -1705,7 +1869,7 @@ export default function Home() {
                           setTrxId(cleaned);
                           setIsTrxInvalid(false); // Reset border on type
                         }}
-                        className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-red-500 focus:ring-red-500 bg-red-950/10' : 'border-purple-900/40 focus:ring-purple-500'}`}
+                        className={`w-full px-4 py-2.5 bg-[#150f2f] text-white rounded-lg focus:outline-none focus:ring-1 text-sm transition-all border ${isTrxInvalid ? 'border-amber-500 focus:ring-amber-500 bg-amber-950/5' : 'border-purple-900/40 focus:ring-purple-500'}`}
                       />
                     </div>
                   )}

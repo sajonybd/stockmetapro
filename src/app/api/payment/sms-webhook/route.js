@@ -4,122 +4,192 @@ import Transaction from '@/models/Transaction';
 import Payment from '@/models/Payment';
 import License from '@/models/License';
 
-// Webhook to receive incoming SMS notifications from httpSMS
+// -----------------------------------------------------------------------
+// Webhook: receives SMS from the custom StockMeta SMS Forwarder Android app
+// Custom App Payload format:
+//   { secret_key, sender, message, sim_slot, timestamp }
+// -----------------------------------------------------------------------
+
 export async function POST(request) {
   try {
     const payload = await request.json();
-    console.log('[SMS Webhook Received Payload]:', JSON.stringify(payload, null, 2));
+    console.log('[SMS Webhook] Received payload:', JSON.stringify(payload, null, 2));
 
-    // httpSMS format sends event details under request body
-    const messageText = payload.data?.content || payload.message || '';
-    const sender = payload.data?.from || payload.sender || '';
-
-    if (!messageText) {
-      return NextResponse.json({ success: false, message: 'Empty message body' }, { status: 400 });
+    // secret_key is accepted but NOT strictly enforced — webhook processes regardless
+    const incomingSecret = payload.secret_key || request.headers.get('X-Secret-Key') || '';
+    if (incomingSecret) {
+      console.log(`[SMS Webhook] Secret key supplied: ${incomingSecret}`);
     }
 
-    // RegEx patterns for bKash & Nagad Cash In / Send Money
-    // Examples: 
-    // bKash: You have received Tk 1000.00 from 01700000000. Ref 1. Fee Tk 0.00. Balance Tk 5000.00. TrxID BLK9A1B2C3 at 02/08/2026 20:00
-    // Nagad: Cash In Tk 1,000.00 from 01700000000 successful. Fee Tk 0.00. Balance Tk 5,000.00. TrxID: 71XYZ999 at 2026-08-02 20:00:00
-    
+    const messageText = payload.message || '';
+    const sender = payload.sender || '';
+
+    if (!messageText) {
+      // Return 200 OK so the Android app knows we received the empty call and won't retry forever
+      return NextResponse.json({ success: true, message: 'Received empty message body' }, { status: 200 });
+    }
+
+    // Payment Provider Detection based on sender name & message content
+    const msgLower = messageText.toLowerCase();
+    const senderLower = sender.toLowerCase();
+
+    const isBkash = senderLower.includes('bkash') || msgLower.includes('bkash');
+    const isNagad = senderLower.includes('nagad') || msgLower.includes('nagad');
+    const isRocket = senderLower.includes('rocket') || msgLower.includes('rocket') || msgLower.includes('dutch-bangla') || msgLower.includes('dbbl');
+
+    if (!isBkash && !isNagad && !isRocket) {
+      console.log(`[SMS Webhook] Ignored non-payment SMS from "${sender}"`);
+      return NextResponse.json({
+        success: true,
+        message: 'Message received but not a recognized payment SMS — ignored'
+      });
+    }
+
     let amount = 0;
     let trxId = '';
     let provider = '';
 
-    // 1. Process bKash Format
-    if (sender.toLowerCase().includes('bkash') || messageText.toLowerCase().includes('bkash')) {
+    // Regex parsing for bKash, Nagad, and Rocket
+    if (isBkash) {
       provider = 'bkash';
-      const amountMatch = messageText.match(/(?:received|cash in|send money)\s+tk\s*([\d,.]+)/i);
+      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+tk\s*([0-9,]+(?:\.[0-9]+)?)/i);
       const trxMatch = messageText.match(/TrxID\s+([A-Z0-9]+)/i);
       if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
       if (trxMatch) trxId = trxMatch[1].trim();
-    } 
-    // 2. Process Nagad Format
-    else if (sender.toLowerCase().includes('nagad') || messageText.toLowerCase().includes('nagad')) {
+    } else if (isNagad) {
       provider = 'nagad';
-      const amountMatch = messageText.match(/(?:received|cash in|send money)\s+tk\s*([\d,.]+)/i);
-      const trxMatch = messageText.match(/TrxID:\s*([A-Z0-9]+)/i);
+      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+tk\s*([0-9,]+(?:\.[0-9]+)?)/i);
+      const trxMatch = messageText.match(/TrxID[:\s]+([A-Z0-9]+)/i);
+      if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+      if (trxMatch) trxId = trxMatch[1].trim();
+    } else if (isRocket) {
+      provider = 'rocket';
+      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+(?:tk|bdt)\s*([0-9,]+(?:\.[0-9]+)?)/i);
+      const trxMatch = messageText.match(/(?:TxnId|Transaction\s*ID|TrxID)[:\s]+([A-Z0-9]+)/i);
       if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
       if (trxMatch) trxId = trxMatch[1].trim();
     }
 
-    // Fallback regex if name headers are missing
+    // Generic fallback if specific regex missed it
     if (!trxId) {
-      const genericTrxMatch = messageText.match(/TrxID\s*[:\s]\s*([A-Z0-9]+)/i);
-      if (genericTrxMatch) trxId = genericTrxMatch[1].trim();
+      const fallbackTrx = messageText.match(/(?:TrxID|TxnId|Transaction\s*ID)[:\s]+([A-Z0-9]+)/i);
+      if (fallbackTrx) trxId = fallbackTrx[1].trim();
     }
 
     if (!trxId || !amount) {
-      console.log('[SMS Webhook warning]: Could not parse Transaction ID or Amount from message text:', messageText);
-      return NextResponse.json({ success: true, message: 'Message ignored (Not a valid payment SMS format)' });
+      console.log('[SMS Webhook] Could not parse TrxID or Amount. Message:', messageText);
+      return NextResponse.json({
+        success: true,
+        message: 'Payment SMS received but could not extract TrxID/Amount'
+      });
     }
 
     await connectToDatabase();
 
-    // Check if transaction already exists in DB to prevent duplicate credits
+    // Prevent duplicate processing of the same transaction
     const existingTx = await Transaction.findOne({ trxId });
     if (existingTx) {
-      return NextResponse.json({ success: true, message: 'Transaction already processed' });
+      return NextResponse.json({
+        success: true,
+        message: 'Transaction already processed',
+        data: { trxId, amount }
+      });
     }
 
-    // Save transaction to local db pool
+    // Save transaction to the pool as Unused by default
     const newTx = await Transaction.create({
       trxId,
       amountPaid: amount,
-      paymentProvider: provider || 'manual',
+      paymentProvider: provider,
       type: 'NEW_PURCHASE',
       creditsAdded: 0,
       creditsRolledOver: 0,
       totalCreditsAfter: 0,
       newExpiry: new Date(),
-      status: 'Unused' // Custom tag to match later
+      status: 'Unused'
     });
 
-    console.log(`[SMS Webhook Success]: Parsed Tx ${trxId} - Amount ${amount} Tk. Saved to Pool.`);
+    console.log(`[SMS Webhook] Saved Transaction: ${provider.toUpperCase()} TrxID=${trxId} Amount=${amount} Tk`);
 
-    // Auto-approve pending payments waiting for this TrxID
+    // Check if there is already a Pending user payment waiting for this TrxID
     const pendingPayment = await Payment.findOne({ trx_id: trxId, status: 'Pending' });
     if (pendingPayment) {
-      // Execute Auto-Approval logic here
+      const expectedAmount = pendingPayment.amount;
+      const tolerance = 2; // ±2 Tk tolerance
+      const amountOk = amount >= (expectedAmount - tolerance);
+
+      if (!amountOk) {
+        console.warn(`[SMS Webhook] Amount mismatch! SMS=${amount} Tk, Expected=${expectedAmount} Tk. Setting status to AmountMismatch.`);
+        await Transaction.findOneAndUpdate({ trxId }, { status: 'AmountMismatch' });
+        return NextResponse.json({
+          success: true,
+          message: `Amount mismatch: SMS shows ${amount} Tk but subscription requires ${expectedAmount} Tk`
+        });
+      }
+
+      // Amount matches! Approve Payment and update Transaction status
       pendingPayment.status = 'Approved';
       await pendingPayment.save();
 
-      // Check if Renewal or New License
+      await Transaction.findOneAndUpdate({ trxId }, { status: 'Matched' });
+
+      // Automatically extend/provision license
       if (pendingPayment.licenseId) {
+        // Renewal
         const license = await License.findById(pendingPayment.licenseId);
         if (license) {
+          const Package = (await import('@/models/Package')).default;
+          const selectedPackage = await Package.findById(pendingPayment.packageId);
+          const daysToAdd = selectedPackage ? selectedPackage.duration_days : 30;
+          const creditsToAdd = selectedPackage ? selectedPackage.credit_limit : 1000;
+
           license.status = 'Active';
-          license.credit_limit += 1000; // Increment credits on auto-approve
-          const currentExpiry = new Date(license.expire_date);
-          currentExpiry.setDate(currentExpiry.getDate() + 30);
+          license.credit_limit += creditsToAdd;
+          const currentExpiry = new Date(license.expire_date || new Date());
+          currentExpiry.setDate(currentExpiry.getDate() + daysToAdd);
           license.expire_date = currentExpiry;
+          license.expiresAt = currentExpiry;
           await license.save();
         }
       } else {
-        // Create new active license
-        const api_key = 'SK-' + Math.random().toString(36).substring(2, 15).toUpperCase();
+        // New License
+        const Package = (await import('@/models/Package')).default;
+        const selectedPackage = await Package.findById(pendingPayment.packageId);
+        const days = selectedPackage ? selectedPackage.duration_days : 30;
+        const credits = selectedPackage ? selectedPackage.credit_limit : 1000;
+
+        const { generateLicenseKey } = await import('@/lib/services/licenseService');
+        const api_key = generateLicenseKey();
         const expiry = new Date();
-        expiry.setDate(expiry.getDate() + 30);
+        expiry.setDate(expiry.getDate() + days);
 
         await License.create({
           api_key,
           userId: pendingPayment.userId,
           packageId: pendingPayment.packageId,
-          credit_limit: 1000,
-          currentCredits: 1000,
-          duration_days: 30,
+          credit_limit: credits,
+          currentCredits: credits,
+          duration_days: days,
           status: 'Active',
           expire_date: expiry,
+          expiresAt: expiry,
           activation_date: new Date()
         });
       }
-      console.log(`[SMS Webhook Auto-Approved]: Payment with TrxID ${trxId} was automatically approved.`);
+      console.log(`[SMS Webhook] Auto-Approved pending payment for TrxID=${trxId}`);
     }
 
-    return NextResponse.json({ success: true, message: 'Transaction recorded successfully', data: { trxId, amount } });
+    return NextResponse.json({
+      success: true,
+      message: 'Transaction recorded successfully',
+      data: { trxId, amount, provider }
+    });
+
   } catch (error) {
     console.error('[SMS Webhook Error]:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: error.message },
+      { status: 500 }
+    );
   }
 }

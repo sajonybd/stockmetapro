@@ -2,16 +2,23 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import Payment from '@/models/Payment';
 import Package from '@/models/Package';
+import Transaction from '@/models/Transaction';
+import License from '@/models/License';
+
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { packageId, licenseId, name, email, mobile, payment_method, trx_id, amount, currency, userId: payloadUserId, bypass_sms } = body;
+    const {
+      packageId, licenseId, name, email, mobile,
+      payment_method, trx_id, amount, currency,
+      userId: payloadUserId, bypass_sms,
+      attempt = 1 // 1st submit = check only, 2nd submit = create Pending
+    } = body;
     
     let userId = request.cookies.get('user_session')?.value || payloadUserId;
     
     if (!userId) {
-      // Fallback: Generate a temporary mock ObjectId if no session exists to bypass unauthorized blocks
       const mongoose = (await import('mongoose')).default;
       userId = new mongoose.Types.ObjectId().toString();
     }
@@ -32,7 +39,6 @@ export async function POST(request) {
     });
 
     if (existingUser) {
-      // If user is renewing or user details match existing registered account
       if (licenseId || payloadUserId === existingUser._id.toString() || !payloadUserId) {
         userId = existingUser._id.toString();
       } else if (existingUser._id.toString() !== userId) {
@@ -49,16 +55,46 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Invalid package selected' }, { status: 400 });
     }
 
-    // Check if SMS Webhook has already parsed and registered this TrxID
-    const Transaction = (await import('@/models/Transaction')).default;
-    const License = (await import('@/models/License')).default;
-    
-    const matchingTx = await Transaction.findOne({ trxId: trx_id });
-    const isApproved = !!matchingTx;
+    // Determine if this is a global payment method (Payoneer/Skrill — no SMS verification needed)
+    const isGlobalMethod = bypass_sms === true || ['Payoneer', 'Skrill'].includes(payment_method);
 
-    // Reject on mismatch only if bypass_sms flag is false
-    if (!isApproved && !bypass_sms) {
-      return NextResponse.json({ success: false, message: 'Invalid Transaction ID or SMS not received yet.' }, { status: 400 });
+    // ── DEBUG LOGS TO IDENTIFY THE ISSUE ──
+    console.log(`[DEBUG Purchase] Incoming trx_id: "${trx_id}" (Length: ${trx_id ? trx_id.length : 0})`);
+    console.log(`[DEBUG Purchase] bypass_sms: ${bypass_sms}, isGlobalMethod: ${isGlobalMethod}, attempt: ${attempt}`);
+    
+    // Let's dump all unused transactions in DB to console for live inspection
+    const allUnused = await Transaction.find({ status: 'Unused' });
+    console.log(`[DEBUG Purchase] Unused Transactions count in DB: ${allUnused.length}`);
+    allUnused.forEach(tx => {
+      console.log(`  - DB TrxID: "${tx.trxId}" (Length: ${tx.trxId ? tx.trxId.length : 0}) | status: ${tx.status}`);
+    });
+
+    // Look for matching SMS transaction in the pool
+    const matchingTx = isGlobalMethod
+      ? null
+      : await Transaction.findOne({ 
+          trxId: { $regex: new RegExp(`^${trx_id.trim()}$`, 'i') },
+          status: 'Unused' 
+        });
+    const isApproved = !!matchingTx;
+    console.log(`[DEBUG Purchase] matchingTx Found: ${isApproved ? 'YES' : 'NO'}`);
+
+    // ── Attempt 1 (Local BDT): If not found in SMS pool, fail immediately without saving to DB ──
+    if (!isApproved && !isGlobalMethod && attempt <= 1) {
+      console.log(`[Purchase] Attempt 1: TrxID=${trx_id} not found in SMS pool. Returning check warning.`);
+      return NextResponse.json({
+        success: false,
+        notVerified: true,
+        message: 'Transaction ID not verified yet. Please check again.'
+      });
+    }
+
+    // ── Attempt 2 or Global: Create Payment record in DB (Approved or Pending) ──
+    if (isApproved) {
+      await Transaction.findByIdAndUpdate(matchingTx._id, { status: 'Matched' });
+      console.log(`[Purchase] SMS Matched: TrxID=${trx_id} → Auto-Approve`);
+    } else {
+      console.log(`[Purchase] TrxID=${trx_id} not found. Creating Pending payment for admin review.`);
     }
 
     let targetLicenseId = null;
@@ -69,9 +105,7 @@ export async function POST(request) {
       } else {
         const LicenseModel = (await import('@/models/License')).default;
         const licDoc = await LicenseModel.findOne({ $or: [{ licenseKey: licenseId }, { api_key: licenseId }] });
-        if (licDoc) {
-          targetLicenseId = licDoc._id;
-        }
+        if (licDoc) targetLicenseId = licDoc._id;
       }
     }
 
@@ -90,7 +124,7 @@ export async function POST(request) {
     });
 
     if (isApproved) {
-      // Auto-approve and provision key immediately if SMS transaction matches
+      // Provision license
       if (licenseId) {
         const license = await License.findOne({ $or: [{ licenseKey: licenseId }, { api_key: licenseId }] });
         if (license) {
@@ -103,7 +137,6 @@ export async function POST(request) {
           await license.save();
         }
       } else {
-        // Create new active license using SMPBD-XXXXX-XXXXX-XXXXX format
         const { generateLicenseKey } = await import('@/lib/services/licenseService');
         const api_key = generateLicenseKey();
         const expiry = new Date();
@@ -130,7 +163,7 @@ export async function POST(request) {
       isAutoApproved: isApproved,
       message: isApproved 
         ? 'Payment verified and approved automatically!' 
-        : 'Payment received. Awaiting SMS verification from your phone.'
+        : 'Payment received. Awaiting admin approval. You will be notified via email.'
     });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

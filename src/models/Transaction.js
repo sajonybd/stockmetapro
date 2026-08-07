@@ -61,6 +61,13 @@ const TransactionSchema = new mongoose.Schema({
   trxId: {
     type: String,
     default: null,
+    unique: true,
+    sparse: true,
+  },
+  status: {
+    type: String,
+    enum: ['Unused', 'Matched', 'AmountMismatch'],
+    default: 'Unused',
   },
   createdAt: {
     type: Date,
