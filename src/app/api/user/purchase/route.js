@@ -78,7 +78,11 @@ export async function POST(request) {
     if (!isGlobalMethod) {
       const candidateTx = await Transaction.findOne({ 
         trxId: { $regex: new RegExp(`^\\s*${escapedTrxId}\\s*$`, 'i') },
-        status: 'Unused' 
+        $or: [
+          { status: { $regex: /^unused$/i } },
+          { status: { $exists: false } },
+          { status: null }
+        ]
       });
 
       if (candidateTx) {
