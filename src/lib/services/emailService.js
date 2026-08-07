@@ -3,8 +3,8 @@ import { SOFTWARE_DOWNLOAD_URL } from '@/lib/config/softwareConfig';
 
 // Create Nodemailer Transporter using environment variables or default Gmail settings
 const createTransporter = () => {
-  const user = process.env.SMTP_USER || process.env.GMAIL_USER || 'support@stockmetapro.com';
-  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '';
+  const user = process.env.SMTP_USER || process.env.GMAIL_USER || 'stockmetapro@gmail.com';
+  const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || 'alrbthnpahrgbedj';
 
   return nodemailer.createTransport({
     service: 'gmail',

@@ -167,14 +167,19 @@ export async function POST(request) {
           await license.save();
 
           // Send Active User Renew Email
-          sendRenewUserSuccessEmail({
-            to: email,
-            userName: name,
-            planName: selectedPackage.name,
-            credits: selectedPackage.credit_limit,
-            apiKey: license.api_key || license.licenseKey,
-            expireDate: currentExpiry
-          }).catch(err => console.error('[Email] Background send failed:', err.message));
+          try {
+            await sendRenewUserSuccessEmail({
+              to: email,
+              userName: name,
+              planName: selectedPackage.name,
+              credits: selectedPackage.credit_limit,
+              apiKey: license.api_key || license.licenseKey,
+              expireDate: currentExpiry
+            });
+            console.log(`[Purchase AutoApprove Email] Renew success email sent to ${email}`);
+          } catch (emailErr) {
+            console.error('[Purchase AutoApprove Email] Failed sending renew email:', emailErr.message);
+          }
         }
       } else {
         const api_key = generateLicenseKey();
@@ -196,13 +201,18 @@ export async function POST(request) {
         });
 
         // Send New Contributor Success Email
-        sendNewUserSuccessEmail({
-          to: email,
-          userName: name,
-          planName: selectedPackage.name,
-          credits: selectedPackage.credit_limit,
-          apiKey: api_key
-        }).catch(err => console.error('[Email] Background send failed:', err.message));
+        try {
+          await sendNewUserSuccessEmail({
+            to: email,
+            userName: name,
+            planName: selectedPackage.name,
+            credits: selectedPackage.credit_limit,
+            apiKey: api_key
+          });
+          console.log(`[Purchase AutoApprove Email] New user success email sent to ${email}`);
+        } catch (emailErr) {
+          console.error('[Purchase AutoApprove Email] Failed sending new user email:', emailErr.message);
+        }
       }
     }
 
