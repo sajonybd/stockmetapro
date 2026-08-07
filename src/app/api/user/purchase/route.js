@@ -4,7 +4,11 @@ import Payment from '@/models/Payment';
 import Package from '@/models/Package';
 import Transaction from '@/models/Transaction';
 import License from '@/models/License';
-
+import User from '@/models/User';
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import { generateLicenseKey } from '@/lib/services/licenseService';
+import { sendNewUserSuccessEmail, sendRenewUserSuccessEmail } from '@/lib/services/emailService';
 
 export async function POST(request) {
   try {
@@ -19,7 +23,6 @@ export async function POST(request) {
     let userId = request.cookies.get('user_session')?.value || payloadUserId;
     
     if (!userId) {
-      const mongoose = (await import('mongoose')).default;
       userId = new mongoose.Types.ObjectId().toString();
     }
 
@@ -30,7 +33,6 @@ export async function POST(request) {
     await connectToDatabase();
 
     // Check if Email or Mobile is already registered by another user
-    const User = (await import('@/models/User')).default;
     const existingUser = await User.findOne({
       $or: [
         { email: email.toLowerCase().trim() },
@@ -39,15 +41,8 @@ export async function POST(request) {
     });
 
     if (existingUser) {
-      if (licenseId || payloadUserId === existingUser._id.toString() || !payloadUserId) {
-        userId = existingUser._id.toString();
-      } else if (existingUser._id.toString() !== userId) {
-        const fieldMatched = existingUser.email.toLowerCase() === email.toLowerCase().trim() ? 'Email' : 'Mobile';
-        return NextResponse.json({ 
-          success: false, 
-          message: `${fieldMatched} is already used. Please enter a different one.` 
-        }, { status: 400 });
-      }
+      // Reuse existing user's ID for re-attempts or renewals
+      userId = existingUser._id.toString();
     }
 
     const selectedPackage = await Package.findById(packageId);
@@ -57,17 +52,6 @@ export async function POST(request) {
 
     // Determine if this is a global payment method (Payoneer/Skrill — no SMS verification needed)
     const isGlobalMethod = bypass_sms === true || ['Payoneer', 'Skrill'].includes(payment_method);
-
-    // ── DEBUG LOGS TO IDENTIFY THE ISSUE ──
-    console.log(`[DEBUG Purchase] Incoming trx_id: "${trx_id}" (Length: ${trx_id ? trx_id.length : 0})`);
-    console.log(`[DEBUG Purchase] bypass_sms: ${bypass_sms}, isGlobalMethod: ${isGlobalMethod}, attempt: ${attempt}`);
-    
-    // Let's dump all unused transactions in DB to console for live inspection
-    const allUnused = await Transaction.find({ status: 'Unused' });
-    console.log(`[DEBUG Purchase] Unused Transactions count in DB: ${allUnused.length}`);
-    allUnused.forEach(tx => {
-      console.log(`  - DB TrxID: "${tx.trxId}" (Length: ${tx.trxId ? tx.trxId.length : 0}) | status: ${tx.status}`);
-    });
 
     // Look for matching SMS transaction in the pool with whitespace tolerance and regex escaping
     const searchTrxId = trx_id.trim();
@@ -98,11 +82,9 @@ export async function POST(request) {
     }
 
     const isApproved = !!matchingTx;
-    console.log(`[DEBUG Purchase] matchingTx Found: ${isApproved ? 'YES' : 'NO'}`);
 
     // ── Attempt 1 (Local BDT): If not found in SMS pool, fail immediately without saving to DB ──
     if (!isApproved && !isGlobalMethod && attempt <= 1) {
-      console.log(`[Purchase] Attempt 1: TrxID=${trx_id} not found in SMS pool. Returning check warning.`);
       return NextResponse.json({
         success: false,
         notVerified: true,
@@ -113,53 +95,52 @@ export async function POST(request) {
     // ── Attempt 2 or Global: Create Payment record in DB (Approved or Pending) ──
     if (isApproved) {
       await Transaction.findByIdAndUpdate(matchingTx._id, { status: 'Matched' });
-      console.log(`[Purchase] SMS Matched: TrxID=${trx_id} → Auto-Approve`);
-    } else {
-      console.log(`[Purchase] TrxID=${trx_id} not found. Creating Pending payment for admin review.`);
     }
 
     let targetLicenseId = null;
     if (licenseId) {
-      const mongoose = (await import('mongoose')).default;
       if (mongoose.Types.ObjectId.isValid(licenseId)) {
         targetLicenseId = licenseId;
       } else {
-        const LicenseModel = (await import('@/models/License')).default;
-        const licDoc = await LicenseModel.findOne({ $or: [{ licenseKey: licenseId }, { api_key: licenseId }] });
+        const licDoc = await License.findOne({ $or: [{ licenseKey: licenseId }, { api_key: licenseId }] });
         if (licDoc) targetLicenseId = licDoc._id;
       }
     }
 
-    // Ensure User record is created/updated so License is properly bound
-    const bcrypt = (await import('bcryptjs')).default;
-    let userDoc = await User.findOne({
-      $or: [
-        { email: email.toLowerCase().trim() },
-        { mobile: mobile.trim() },
-        { _id: userId }
-      ]
-    });
+    // Ensure User record is created/updated so License and Payment are properly bound
+    const userOrConditions = [];
+    if (email && email.trim()) userOrConditions.push({ email: email.toLowerCase().trim() });
+    if (mobile && mobile.trim()) userOrConditions.push({ mobile: mobile.trim() });
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) userOrConditions.push({ _id: userId });
+
+    let userDoc = null;
+    if (userOrConditions.length > 0) {
+      userDoc = await User.findOne({ $or: userOrConditions });
+    }
 
     if (!userDoc) {
       const defaultPasswordHash = await bcrypt.hash('123456', 10);
       userDoc = await User.create({
-        _id: userId,
-        name,
-        email: email.toLowerCase().trim(),
-        mobile: mobile.trim(),
+        name: name || 'User',
+        email: (email || '').toLowerCase().trim(),
+        mobile: (mobile || '').trim(),
         password: defaultPasswordHash,
         role: 'user'
       });
     } else {
-      userId = userDoc._id.toString();
-      userDoc.name = name;
-      userDoc.email = email.toLowerCase().trim();
-      userDoc.mobile = mobile.trim();
+      userDoc.name = name || userDoc.name;
+      if (email && email.trim()) userDoc.email = email.toLowerCase().trim();
+      if (mobile && mobile.trim()) userDoc.mobile = mobile.trim();
       await userDoc.save();
     }
+    userId = userDoc._id.toString();
+
+    const finalPaidAmount = isApproved && matchingTx?.amountPaid 
+      ? matchingTx.amountPaid 
+      : (amount || (currency === 'USD' ? selectedPackage.price_usd : selectedPackage.price_tk));
 
     const newPayment = await Payment.create({
-      userId,
+      userId: userDoc._id,
       packageId,
       licenseId: targetLicenseId,
       name,
@@ -167,7 +148,7 @@ export async function POST(request) {
       mobile,
       payment_method,
       trx_id,
-      amount: amount || (currency === 'USD' ? selectedPackage.price_usd : selectedPackage.price_tk),
+      amount: finalPaidAmount,
       currency: currency || 'BDT',
       status: isApproved ? 'Approved' : 'Pending',
     });
@@ -184,16 +165,26 @@ export async function POST(request) {
           license.expire_date = currentExpiry;
           license.expiresAt = currentExpiry;
           await license.save();
+
+          // Send Active User Renew Email
+          sendRenewUserSuccessEmail({
+            to: email,
+            userName: name,
+            planName: selectedPackage.name,
+            credits: selectedPackage.credit_limit,
+            apiKey: license.api_key || license.licenseKey,
+            expireDate: currentExpiry
+          }).catch(err => console.error('[Email] Background send failed:', err.message));
         }
       } else {
-        const { generateLicenseKey } = await import('@/lib/services/licenseService');
         const api_key = generateLicenseKey();
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + selectedPackage.duration_days);
 
-        await License.create({
+        const newLicense = await License.create({
           api_key,
-          userId,
+          licenseKey: api_key,
+          userId: userDoc._id,
           packageId,
           credit_limit: selectedPackage.credit_limit,
           currentCredits: selectedPackage.credit_limit,
@@ -203,6 +194,15 @@ export async function POST(request) {
           expiresAt: expiry,
           activation_date: new Date()
         });
+
+        // Send New Contributor Success Email
+        sendNewUserSuccessEmail({
+          to: email,
+          userName: name,
+          planName: selectedPackage.name,
+          credits: selectedPackage.credit_limit,
+          apiKey: api_key
+        }).catch(err => console.error('[Email] Background send failed:', err.message));
       }
     }
 

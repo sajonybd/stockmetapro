@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { SOFTWARE_DOWNLOAD_URL } from '@/lib/config/softwareConfig';
 
 // Create Nodemailer Transporter using environment variables or default Gmail settings
 const createTransporter = () => {
@@ -13,8 +14,6 @@ const createTransporter = () => {
     },
   });
 };
-
-import { SOFTWARE_DOWNLOAD_URL } from '@/lib/config/softwareConfig';
 
 async function getLatestDownloadLink() {
   return SOFTWARE_DOWNLOAD_URL;

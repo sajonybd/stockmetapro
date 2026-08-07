@@ -5,6 +5,8 @@ import License from '@/models/License';
 import Package from '@/models/Package';
 import User from '@/models/User';
 import { cookies } from 'next/headers';
+import { renewOrPurchaseLicense } from '@/lib/services/licenseService';
+import { sendNewUserPendingApprovedEmail, sendRenewUserPendingApprovedEmail } from '@/lib/services/emailService';
 
 const checkAuth = async () => {
   const cookieStore = await cookies();
@@ -77,9 +79,6 @@ export async function POST(request) {
     }
 
     if (action === 'Approve') {
-      const { renewOrPurchaseLicense } = await import('@/lib/services/licenseService');
-      const { sendNewUserPendingApprovedEmail, sendRenewUserPendingApprovedEmail } = await import('@/lib/services/emailService');
-      
       const isRenew = !!payment.licenseId;
 
       const result = await renewOrPurchaseLicense({
