@@ -69,11 +69,12 @@ export async function POST(request) {
       console.log(`  - DB TrxID: "${tx.trxId}" (Length: ${tx.trxId ? tx.trxId.length : 0}) | status: ${tx.status}`);
     });
 
-    // Look for matching SMS transaction in the pool
+    // Look for matching SMS transaction in the pool with whitespace tolerance
+    const searchTrxId = trx_id.trim();
     const matchingTx = isGlobalMethod
       ? null
       : await Transaction.findOne({ 
-          trxId: { $regex: new RegExp(`^${trx_id.trim()}$`, 'i') },
+          trxId: { $regex: new RegExp(`^\\s*${searchTrxId}\\s*$`, 'i') },
           status: 'Unused' 
         });
     const isApproved = !!matchingTx;
