@@ -110,6 +110,34 @@ export async function POST(request) {
       }
     }
 
+    // Ensure User record is created/updated so License is properly bound
+    const bcrypt = (await import('bcryptjs')).default;
+    let userDoc = await User.findOne({
+      $or: [
+        { email: email.toLowerCase().trim() },
+        { mobile: mobile.trim() },
+        { _id: userId }
+      ]
+    });
+
+    if (!userDoc) {
+      const defaultPasswordHash = await bcrypt.hash('123456', 10);
+      userDoc = await User.create({
+        _id: userId,
+        name,
+        email: email.toLowerCase().trim(),
+        mobile: mobile.trim(),
+        password: defaultPasswordHash,
+        role: 'user'
+      });
+    } else {
+      userId = userDoc._id.toString();
+      userDoc.name = name;
+      userDoc.email = email.toLowerCase().trim();
+      userDoc.mobile = mobile.trim();
+      await userDoc.save();
+    }
+
     const newPayment = await Payment.create({
       userId,
       packageId,
