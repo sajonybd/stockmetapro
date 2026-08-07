@@ -1,11 +1,16 @@
 import nodemailer from 'nodemailer';
 import { SOFTWARE_DOWNLOAD_URL } from '@/lib/config/softwareConfig';
 
-// Create Nodemailer Transporter using environment variables or default Gmail settings
-const createTransporter = () => {
+// Helper to get Gmail credentials with reliable fallback
+const getCredentials = () => {
   const user = process.env.SMTP_USER || process.env.GMAIL_USER || 'stockmetapro@gmail.com';
   const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || 'alrbthnpahrgbedj';
+  return { user, pass };
+};
 
+// Create Nodemailer Transporter
+const createTransporter = () => {
+  const { user, pass } = getCredentials();
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -24,16 +29,10 @@ async function getLatestDownloadLink() {
  */
 export async function sendNewUserSuccessEmail({ to, userName, planName, credits, apiKey }) {
   try {
-    const user = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) {
-      console.log('[EmailService] SMTP credentials missing. Skipping email send.');
-      return false;
-    }
-
+    const { user } = getCredentials();
     const downloadLink = await getLatestDownloadLink();
-
     const transporter = createTransporter();
+
     const mailOptions = {
       from: `"StockMetaPro" <${user}>`,
       to: to,
@@ -79,13 +78,7 @@ export async function sendNewUserSuccessEmail({ to, userName, planName, credits,
  */
 export async function sendRenewUserSuccessEmail({ to, userName, planName, credits, apiKey, expireDate }) {
   try {
-    const user = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) {
-      console.log('[EmailService] SMTP credentials missing. Skipping email send.');
-      return false;
-    }
-
+    const { user } = getCredentials();
     const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const formattedExpire = expireDate ? new Date(expireDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
@@ -134,10 +127,7 @@ export async function sendRenewUserSuccessEmail({ to, userName, planName, credit
  */
 export async function sendNewUserPendingApprovedEmail({ to, userName, planName, credits, apiKey }) {
   try {
-    const user = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) return false;
-
+    const { user } = getCredentials();
     const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const mailOptions = {
@@ -183,10 +173,7 @@ export async function sendNewUserPendingApprovedEmail({ to, userName, planName, 
  */
 export async function sendRenewUserPendingApprovedEmail({ to, userName, planName, credits, apiKey, expireDate }) {
   try {
-    const user = process.env.SMTP_USER || process.env.GMAIL_USER;
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) return false;
-
+    const { user } = getCredentials();
     const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const formattedExpire = expireDate ? new Date(expireDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';

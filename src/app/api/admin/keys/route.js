@@ -83,6 +83,23 @@ export async function POST(request) {
       expiresAt: expiry
     });
 
+    // Send notification email to user if email was provided
+    if (email && email.trim()) {
+      try {
+        const { sendNewUserSuccessEmail } = await import('@/lib/services/emailService');
+        await sendNewUserSuccessEmail({
+          to: email.toLowerCase().trim(),
+          userName: name ? name.trim() : 'Valued Client',
+          planName: `Custom Plan (${credit_limit} Credits)`,
+          credits: parseInt(credit_limit, 10),
+          apiKey: api_key
+        });
+        console.log(`[Admin Manual Key Create] Notification email sent to ${email}`);
+      } catch (emailErr) {
+        console.error('[Admin Manual Key Create] Failed sending email:', emailErr.message);
+      }
+    }
+
     return NextResponse.json({ success: true, data: newLicense });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
