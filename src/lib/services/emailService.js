@@ -14,7 +14,20 @@ const createTransporter = () => {
   });
 };
 
-const DOWNLOAD_LINK = process.env.NEXT_PUBLIC_APP_DOWNLOAD_LINK || 'https://github.com/sajonybd/stockmetapro/releases/download/v1.0.0.1/StockMetaPro_Setup.exe';
+// Dynamic helper to fetch the latest download URL directly from /api/software/check_update route
+async function getLatestDownloadLink() {
+  try {
+    const { GET } = await import('@/app/api/software/check_update/route');
+    const response = await GET();
+    const data = await response.json();
+    if (data && data.download_url) {
+      return data.download_url;
+    }
+  } catch (err) {
+    console.error('[EmailService] Failed to fetch dynamic update link, using fallback:', err.message);
+  }
+  return process.env.NEXT_PUBLIC_APP_DOWNLOAD_LINK || 'https://github.com/sajonybd/stockmetapro/releases/download/v1.0.0.1/StockMetaPro_Setup.exe';
+}
 
 /**
  * 1. Email for New Contributor Instant Payment Success
@@ -27,6 +40,8 @@ export async function sendNewUserSuccessEmail({ to, userName, planName, credits,
       console.log('[EmailService] SMTP credentials missing. Skipping email send.');
       return false;
     }
+
+    const downloadLink = await getLatestDownloadLink();
 
     const transporter = createTransporter();
     const mailOptions = {
@@ -48,7 +63,7 @@ export async function sendNewUserSuccessEmail({ to, userName, planName, credits,
             <p style="font-size: 14px; color: #64748b;">You can now activate and use your license key in our desktop app.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${DOWNLOAD_LINK}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              <a href="${downloadLink}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
                 📥 Download StockMetaPro App
               </a>
             </div>
@@ -81,6 +96,7 @@ export async function sendRenewUserSuccessEmail({ to, userName, planName, credit
       return false;
     }
 
+    const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const formattedExpire = expireDate ? new Date(expireDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
 
@@ -102,7 +118,7 @@ export async function sendRenewUserSuccessEmail({ to, userName, planName, credit
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${DOWNLOAD_LINK}" style="background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              <a href="${downloadLink}" style="background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
                 📥 Download Latest StockMetaPro App
               </a>
             </div>
@@ -132,6 +148,7 @@ export async function sendNewUserPendingApprovedEmail({ to, userName, planName, 
     const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
     if (!user || !pass) return false;
 
+    const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const mailOptions = {
       from: `"StockMetaPro" <${user}>`,
@@ -150,7 +167,7 @@ export async function sendNewUserPendingApprovedEmail({ to, userName, planName, 
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${DOWNLOAD_LINK}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              <a href="${downloadLink}" style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
                 📥 Download StockMetaPro App
               </a>
             </div>
@@ -180,6 +197,7 @@ export async function sendRenewUserPendingApprovedEmail({ to, userName, planName
     const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
     if (!user || !pass) return false;
 
+    const downloadLink = await getLatestDownloadLink();
     const transporter = createTransporter();
     const formattedExpire = expireDate ? new Date(expireDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
 
@@ -201,7 +219,7 @@ export async function sendRenewUserPendingApprovedEmail({ to, userName, planName
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${DOWNLOAD_LINK}" style="background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
+              <a href="${downloadLink}" style="background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: bold; display: inline-block;">
                 📥 Download StockMetaPro App
               </a>
             </div>
