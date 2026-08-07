@@ -136,7 +136,7 @@ export default function AdminPayments() {
   const unusedTxCount = transactions.filter(t => t.status === 'Unused' || !t.status).length;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Manage Payments & Access</h1>
