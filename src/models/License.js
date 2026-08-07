@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import './User.js';
-import './Package.js';
+import './User';
+import './Package';
 
 const LicenseSchema = new mongoose.Schema({
   api_key: {
