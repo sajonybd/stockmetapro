@@ -1,8 +1,8 @@
-import connectToDatabase from '../mongodb.js';
-import License from '../../models/License.js';
-import User from '../../models/User.js';
-import Package from '../../models/Package.js';
-import Transaction from '../../models/Transaction.js';
+import connectToDatabase from '@/lib/mongodb';
+import License from '@/models/License';
+import User from '@/models/User';
+import Package from '@/models/Package';
+import Transaction from '@/models/Transaction';
 
 export function generateLicenseKey() {
   const seg = () => Math.random().toString(36).substring(2, 7).toUpperCase().padStart(5, 'X');

@@ -77,8 +77,8 @@ export async function POST(request) {
     }
 
     if (action === 'Approve') {
-      const { renewOrPurchaseLicense } = await import('@/lib/services/licenseService.js');
-      const { sendNewUserPendingApprovedEmail, sendRenewUserPendingApprovedEmail } = await import('@/lib/services/emailService.js');
+      const { renewOrPurchaseLicense } = await import('@/lib/services/licenseService');
+      const { sendNewUserPendingApprovedEmail, sendRenewUserPendingApprovedEmail } = await import('@/lib/services/emailService');
       
       const isRenew = !!payment.licenseId;
 
