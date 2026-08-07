@@ -69,14 +69,30 @@ export async function POST(request) {
       console.log(`  - DB TrxID: "${tx.trxId}" (Length: ${tx.trxId ? tx.trxId.length : 0}) | status: ${tx.status}`);
     });
 
-    // Look for matching SMS transaction in the pool with whitespace tolerance
+    // Look for matching SMS transaction in the pool with whitespace tolerance and regex escaping
     const searchTrxId = trx_id.trim();
-    const matchingTx = isGlobalMethod
-      ? null
-      : await Transaction.findOne({ 
-          trxId: { $regex: new RegExp(`^\\s*${searchTrxId}\\s*$`, 'i') },
-          status: 'Unused' 
-        });
+    const escapedTrxId = searchTrxId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const expectedAmount = currency === 'USD' ? selectedPackage.price_usd : selectedPackage.price_tk;
+
+    let matchingTx = null;
+    if (!isGlobalMethod) {
+      const candidateTx = await Transaction.findOne({ 
+        trxId: { $regex: new RegExp(`^\\s*${escapedTrxId}\\s*$`, 'i') },
+        status: 'Unused' 
+      });
+
+      if (candidateTx) {
+        const txAmount = candidateTx.amountPaid || candidateTx.amount || 0;
+        const amountDiff = Math.abs(txAmount - expectedAmount);
+        // Allow auto-approval if amount matches or if amount was not set on manual/test transaction
+        if (!txAmount || amountDiff <= 2) {
+          matchingTx = candidateTx;
+        } else {
+          console.log(`[Purchase] Amount Mismatch! Candidate TrxID=${searchTrxId} has Amount=${txAmount}, expected ${expectedAmount}`);
+        }
+      }
+    }
+
     const isApproved = !!matchingTx;
     console.log(`[DEBUG Purchase] matchingTx Found: ${isApproved ? 'YES' : 'NO'}`);
 

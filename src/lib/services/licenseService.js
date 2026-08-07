@@ -105,21 +105,26 @@ export async function renewOrPurchaseLicense({
 
     await license.save();
 
-    // Record Transaction Audit Log
-    const transaction = await Transaction.create({
-      licenseId: license._id,
-      userId: license.userId || (user ? user._id : null),
-      packageId: selectedPackage._id,
-      type: 'RENEWAL',
-      amountPaid,
-      creditsAdded: selectedPackage.credit_limit,
-      creditsRolledOver: rolledOverCredits,
-      totalCreditsAfter: totalNewCredits,
-      previousExpiry: currentExpiry,
-      newExpiry,
-      paymentProvider,
-      trxId,
-    });
+    // Record Transaction Audit Log safely
+    let transaction = null;
+    try {
+      transaction = await Transaction.create({
+        licenseId: license._id,
+        userId: license.userId || (user ? user._id : null),
+        packageId: selectedPackage._id,
+        type: 'RENEWAL',
+        amountPaid,
+        creditsAdded: selectedPackage.credit_limit,
+        creditsRolledOver: rolledOverCredits,
+        totalCreditsAfter: totalNewCredits,
+        previousExpiry: currentExpiry,
+        newExpiry,
+        paymentProvider,
+        trxId,
+      });
+    } catch (txErr) {
+      console.error('[LicenseService] Audit transaction creation non-fatal error:', txErr.message);
+    }
 
     return {
       success: true,
@@ -151,20 +156,25 @@ export async function renewOrPurchaseLicense({
       userId: user ? user._id : null,
     });
 
-    const transaction = await Transaction.create({
-      licenseId: newLicense._id,
-      userId: user ? user._id : null,
-      packageId: selectedPackage._id,
-      type: 'NEW_PURCHASE',
-      amountPaid,
-      creditsAdded: selectedPackage.credit_limit,
-      creditsRolledOver: 0,
-      totalCreditsAfter: selectedPackage.credit_limit,
-      previousExpiry: null,
-      newExpiry: expiryDate,
-      paymentProvider,
-      trxId,
-    });
+    let transaction = null;
+    try {
+      transaction = await Transaction.create({
+        licenseId: newLicense._id,
+        userId: user ? user._id : null,
+        packageId: selectedPackage._id,
+        type: 'NEW_PURCHASE',
+        amountPaid,
+        creditsAdded: selectedPackage.credit_limit,
+        creditsRolledOver: 0,
+        totalCreditsAfter: selectedPackage.credit_limit,
+        previousExpiry: null,
+        newExpiry: expiryDate,
+        paymentProvider,
+        trxId,
+      });
+    } catch (txErr) {
+      console.error('[LicenseService] Audit transaction creation non-fatal error:', txErr.message);
+    }
 
     return {
       success: true,

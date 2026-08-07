@@ -78,7 +78,10 @@ export async function POST(request) {
 
     if (action === 'Approve') {
       const { renewOrPurchaseLicense } = await import('@/lib/services/licenseService.js');
+      const { sendNewUserPendingApprovedEmail, sendRenewUserPendingApprovedEmail } = await import('@/lib/services/emailService.js');
       
+      const isRenew = !!payment.licenseId;
+
       const result = await renewOrPurchaseLicense({
         identifier: payment.licenseId ? payment.licenseId.toString() : payment.email || payment.mobile,
         packageId: payment.packageId._id,
@@ -96,10 +99,36 @@ export async function POST(request) {
       }
       await payment.save();
 
-      console.log('====== EMAIL SENT TO:', payment.email, '======');
-      console.log('Subject: StockMetaPro - Payment Approved & License Details');
-      console.log(`License Key: ${result.license.licenseKey || result.license.api_key}\nMessage: ${result.message}`);
-      console.log('==================================================');
+      const apiKey = result.license?.api_key || result.license?.licenseKey;
+      const planName = payment.packageId?.name || 'Pro';
+      const credits = payment.packageId?.credit_limit || 1500;
+      const recipientEmail = payment.email;
+
+      if (recipientEmail) {
+        try {
+          if (isRenew) {
+            await sendRenewUserPendingApprovedEmail({
+              to: recipientEmail,
+              userName: payment.name,
+              planName: planName,
+              credits: credits,
+              apiKey: apiKey,
+              expireDate: result.license?.expire_date || result.license?.expiresAt
+            });
+          } else {
+            await sendNewUserPendingApprovedEmail({
+              to: recipientEmail,
+              userName: payment.name,
+              planName: planName,
+              credits: credits,
+              apiKey: apiKey
+            });
+          }
+          console.log(`[Admin Payment Approve] Notification email successfully sent to ${recipientEmail}`);
+        } catch (emailErr) {
+          console.error('[Admin Payment Approve] Failed sending notification email:', emailErr.message);
+        }
+      }
 
       return NextResponse.json({ success: true, message: result.message });
     }
