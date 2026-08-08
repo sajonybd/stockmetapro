@@ -5,31 +5,45 @@ import Payment from '@/models/Payment';
 import License from '@/models/License';
 
 // -----------------------------------------------------------------------
-// Webhook: receives SMS from the custom StockMeta SMS Forwarder Android app
-// Custom App Payload format:
-//   { secret_key, sender, message, sim_slot, timestamp }
+// Webhook: receives SMS from custom SMS Forwarder Android app
+// Payload format: { secret_key, sender, message, sim_slot, timestamp }
 // -----------------------------------------------------------------------
+
+function parsePaymentSms(messageText) {
+  let amount = 0;
+  let trxId = '';
+
+  // 1. TrxID Extraction (bKash/Nagad/Rocket/DBBL formats)
+  const trxMatch = messageText.match(/(?:TrxID|TxnId|TxID|Transaction\s*ID|Ref[:\s]*ID)[:\s]+([A-Z0-9]+)/i);
+  if (trxMatch) {
+    trxId = trxMatch[1].trim();
+  }
+
+  // 2. Amount Extraction (handles "Tk 800", "800.00 Tk", "Tk. 800", "BDT 800", etc.)
+  const amountMatch = 
+    messageText.match(/(?:Tk|BDT|Tk\.|Amount)[:\s]*([0-9,]+(?:\.[0-9]+)?)/i) ||
+    messageText.match(/([0-9,]+(?:\.[0-9]+)?)\s*(?:Tk|BDT)/i) ||
+    messageText.match(/(?:received|cash\s*in|send\s*money|pay|deposit)\s+(?:of\s+)?(?:tk|bdt)?\s*([0-9,]+(?:\.[0-9]+)?)/i);
+
+  if (amountMatch) {
+    amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+  }
+
+  return { trxId, amount };
+}
 
 export async function POST(request) {
   try {
     const payload = await request.json();
     console.log('[SMS Webhook] Received payload:', JSON.stringify(payload, null, 2));
 
-    // secret_key is accepted but NOT strictly enforced — webhook processes regardless
-    const incomingSecret = payload.secret_key || request.headers.get('X-Secret-Key') || '';
-    if (incomingSecret) {
-      console.log(`[SMS Webhook] Secret key supplied: ${incomingSecret}`);
-    }
-
     const messageText = payload.message || '';
     const sender = payload.sender || '';
 
     if (!messageText) {
-      // Return 200 OK so the Android app knows we received the empty call and won't retry forever
       return NextResponse.json({ success: true, message: 'Received empty message body' }, { status: 200 });
     }
 
-    // Payment Provider Detection based on sender name & message content
     const msgLower = messageText.toLowerCase();
     const senderLower = sender.toLowerCase();
 
@@ -37,7 +51,10 @@ export async function POST(request) {
     const isNagad = senderLower.includes('nagad') || msgLower.includes('nagad');
     const isRocket = senderLower.includes('rocket') || msgLower.includes('rocket') || msgLower.includes('dutch-bangla') || msgLower.includes('dbbl');
 
-    if (!isBkash && !isNagad && !isRocket) {
+    // If sender or body contains bKash, Nagad, Rocket, or TrxID / TxnID, process it
+    const hasTrxKeyword = /trxid|txnid|transaction/i.test(messageText);
+
+    if (!isBkash && !isNagad && !isRocket && !hasTrxKeyword) {
       console.log(`[SMS Webhook] Ignored non-payment SMS from "${sender}"`);
       return NextResponse.json({
         success: true,
@@ -45,42 +62,15 @@ export async function POST(request) {
       });
     }
 
-    let amount = 0;
-    let trxId = '';
-    let provider = '';
-
-    // Regex parsing for bKash, Nagad, and Rocket
-    if (isBkash) {
-      provider = 'bkash';
-      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+tk\s*([0-9,]+(?:\.[0-9]+)?)/i);
-      const trxMatch = messageText.match(/TrxID\s+([A-Z0-9]+)/i);
-      if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-      if (trxMatch) trxId = trxMatch[1].trim();
-    } else if (isNagad) {
-      provider = 'nagad';
-      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+tk\s*([0-9,]+(?:\.[0-9]+)?)/i);
-      const trxMatch = messageText.match(/TrxID[:\s]+([A-Z0-9]+)/i);
-      if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-      if (trxMatch) trxId = trxMatch[1].trim();
-    } else if (isRocket) {
-      provider = 'rocket';
-      const amountMatch = messageText.match(/(?:received|cash\s*in|send\s*money)\s+(?:tk|bdt)\s*([0-9,]+(?:\.[0-9]+)?)/i);
-      const trxMatch = messageText.match(/(?:TxnId|Transaction\s*ID|TrxID)[:\s]+([A-Z0-9]+)/i);
-      if (amountMatch) amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-      if (trxMatch) trxId = trxMatch[1].trim();
-    }
-
-    // Generic fallback if specific regex missed it
-    if (!trxId) {
-      const fallbackTrx = messageText.match(/(?:TrxID|TxnId|Transaction\s*ID)[:\s]+([A-Z0-9]+)/i);
-      if (fallbackTrx) trxId = fallbackTrx[1].trim();
-    }
+    const provider = isBkash ? 'bkash' : isNagad ? 'nagad' : isRocket ? 'rocket' : 'mobile_wallet';
+    const { trxId, amount } = parsePaymentSms(messageText);
 
     if (!trxId || !amount) {
       console.log('[SMS Webhook] Could not parse TrxID or Amount. Message:', messageText);
       return NextResponse.json({
         success: true,
-        message: 'Payment SMS received but could not extract TrxID/Amount'
+        message: 'Payment SMS received but could not extract TrxID/Amount',
+        receivedText: messageText
       });
     }
 
@@ -112,7 +102,11 @@ export async function POST(request) {
     console.log(`[SMS Webhook] Saved Transaction: ${provider.toUpperCase()} TrxID=${trxId} Amount=${amount} Tk`);
 
     // Check if there is already a Pending user payment waiting for this TrxID
-    const pendingPayment = await Payment.findOne({ trx_id: trxId, status: 'Pending' });
+    const pendingPayment = await Payment.findOne({ 
+      trx_id: { $regex: new RegExp(`^${trxId.trim()}$`, 'i') }, 
+      status: 'Pending' 
+    });
+
     if (pendingPayment) {
       const expectedAmount = pendingPayment.amount;
       const tolerance = 2; // ±2 Tk tolerance
