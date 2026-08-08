@@ -21,7 +21,8 @@ const createTransporter = () => {
 };
 
 async function getLatestDownloadLink() {
-  return SOFTWARE_DOWNLOAD_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stockmetapro.com';
+  return `${baseUrl}/download`;
 }
 
 /**
