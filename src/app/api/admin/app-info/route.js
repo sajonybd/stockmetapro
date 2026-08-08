@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { LATEST_PERMANENT_DOWNLOAD_URL, getLatestTagViaRedirect } from '@/lib/config/softwareConfig';
 
+// Force dynamic execution, disable static caching completely
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const checkAuth = async () => {
   const cookieStore = await cookies();
   const adminSession = cookieStore.get('admin_session');
@@ -30,7 +34,7 @@ export async function GET() {
       return NextResponse.json({
         success: true,
         isFallback: true,
-        message: 'GitHub API limit fallback using direct HEAD detection',
+        message: 'GitHub REST API rate limit reached. Used direct HEAD redirect detection.',
         latest: {
           tag_name: cleanTag,
           name: `StockMetaPro App Release (${cleanTag})`,
@@ -38,7 +42,12 @@ export async function GET() {
           download_url: autoDownloadUrl,
           assets: [{ name: 'StockMetaPro_Setup.exe', browser_download_url: autoDownloadUrl }]
         },
-        old_releases: []
+        old_releases: [
+          { id: 2, tag_name: 'v1.0.0.2', name: 'StockMetaPro v1.0.0.2', published_at: '2026-08-07T12:00:00Z', asset_name: 'StockMetaPro_Setup.exe', download_url: 'https://github.com/sajonybd/stockmetapro/releases/download/v1.0.0.2/StockMetaPro_Setup.exe' },
+          { id: 1, tag_name: 'v1.0.0.1', name: 'StockMetaPro v1.0.0.1', published_at: '2026-08-01T12:00:00Z', asset_name: 'StockMetaPro_Setup.exe', download_url: 'https://github.com/sajonybd/stockmetapro/releases/download/v1.0.0.1/StockMetaPro_Setup.exe' }
+        ]
+      }, {
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
       });
     }
 
@@ -72,6 +81,8 @@ export async function GET() {
       },
       old_releases: oldReleases,
       total_releases: formatted.length
+    }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
     });
   } catch (error) {
     return NextResponse.json({
@@ -84,6 +95,8 @@ export async function GET() {
         download_url: autoDownloadUrl
       },
       old_releases: []
+    }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
     });
   }
 }

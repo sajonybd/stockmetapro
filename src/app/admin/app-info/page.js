@@ -9,7 +9,7 @@ export default function AdminAppInfo() {
   const fetchAppInfo = async () => {
     try {
       setRefreshing(true);
-      const res = await fetch('/api/admin/app-info');
+      const res = await fetch(`/api/admin/app-info?t=${Date.now()}`, { cache: 'no-store' });
       const json = await res.json();
       if (json.success) {
         setData(json);
