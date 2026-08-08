@@ -14,7 +14,11 @@ export async function getLatestTagViaRedirect() {
     const res = await fetch('https://github.com/sajonybd/stockmetapro/releases/latest', {
       method: 'HEAD',
       redirect: 'manual',
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
     });
     const location = res.headers.get('location');
     if (location && location.includes('/releases/tag/')) {
@@ -36,9 +40,11 @@ export async function getLatestSoftwareReleaseInfo() {
     const res = await fetch('https://api.github.com/repos/sajonybd/stockmetapro/releases/latest', {
       headers: {
         'User-Agent': 'StockMetaPro-Update-Service',
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
-      next: { revalidate: 60 } // Cache for 60 seconds
+      cache: 'no-store'
     });
 
     if (res.ok) {
