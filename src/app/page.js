@@ -1004,10 +1004,11 @@ export default function Home() {
             <span className="text-xl font-bold text-white tracking-tight block mb-2">StockMeta<span className="text-green-500">Pro</span></span>
             <a href="https://mail.google.com/mail/?view=cm&fs=1&to=stockmetapro@gmail.com&su=Support%20Request&body=Hello%20StockMetaPro%20Support," target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors block font-medium">stockmetapro@gmail.com</a>
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             <Link href="/about" className="hover:text-white transition-colors">About Us</Link>
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms & Conditions</a>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
+            <Link href="/refund" className="hover:text-white transition-colors">Refund Policy</Link>
           </div>
           <p>© 2026 StockMetaPro. All rights reserved.</p>
         </div>

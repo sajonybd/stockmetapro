@@ -129,9 +129,21 @@ export default function DownloadPage() {
 
       </main>
 
-      {/* Footer - Identical to Homepage */}
-      <footer className="border-t border-purple-900/20 py-6 text-center text-xs text-purple-300/60 bg-[#0c091e]">
-        © {new Date().getFullYear()} Stock Meta Pro. All rights reserved.
+      {/* Footer */}
+      <footer className="bg-gray-900 py-12 text-gray-400 text-sm mt-auto border-t border-purple-950/20">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <span className="text-xl font-bold text-white tracking-tight block mb-2">StockMeta<span className="text-green-500">Pro</span></span>
+            <a href="mailto:stockmetapro@gmail.com" className="hover:text-white transition-colors block font-medium">stockmetapro@gmail.com</a>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link href="/about" className="hover:text-white transition-colors">About Us</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
+            <Link href="/refund" className="hover:text-white transition-colors">Refund Policy</Link>
+          </div>
+          <p>© 2026 StockMetaPro. All rights reserved.</p>
+        </div>
       </footer>
     </div>
   );
