@@ -28,133 +28,110 @@ export default function DownloadPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      {/* Navigation Header */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              S
-            </div>
-            <div>
-              <span className="text-lg font-bold text-white tracking-tight">StockMetaPro</span>
-              <span className="text-xs text-blue-400 block font-medium">Desktop Edition</span>
-            </div>
+    <div className="min-h-screen bg-[#090514] text-white flex flex-col font-sans selection:bg-purple-600 selection:text-white">
+      {/* Header - Identical to Homepage */}
+      <header className="bg-[#0c091e] border-b border-purple-900/20 py-4 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/images/icons/Website Top Header Logo.png" alt="Stock Meta Pro Logo" className="h-8 w-auto" />
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Stock Meta Pro</span>
           </Link>
-
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/" 
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-slate-800"
-            >
-              Home Page
-            </Link>
-            <a 
-              href={appInfo.download_url} 
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center gap-2"
-            >
-              <span>📥</span> Direct Download
-            </a>
-          </div>
+          <nav className="hidden md:flex items-center gap-8 font-medium text-gray-300">
+            <Link href="/" className="hover:text-green-400 transition-colors">Home</Link>
+            <a href="/#features" className="hover:text-green-400 transition-colors">Features</a>
+            <a href="/#pricing" className="hover:text-green-400 transition-colors">Pricing</a>
+            <Link href="/about" className="hover:text-green-400 transition-colors">About</Link>
+          </nav>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-4xl mx-auto px-6 py-16 w-full flex flex-col items-center justify-center">
-        
-        {/* Hero Badge */}
-        <div className="inline-flex items-center gap-2 bg-blue-950/80 border border-blue-800/60 px-4 py-1.5 rounded-full text-xs font-bold text-blue-400 mb-6 shadow-inner">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          OFFICIAL DESKTOP SOFTWARE RELEASE
-        </div>
+      {/* Main Hero & Download Section - Matching Homepage Gradients */}
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-16 w-full flex flex-col items-center justify-center relative">
+        {/* Ambient background glow */}
+        <div className="absolute top-10 right-1/4 w-[500px] h-[500px] bg-purple-900/10 rounded-full filter blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-10 left-1/4 w-[400px] h-[400px] bg-blue-900/10 rounded-full filter blur-3xl pointer-events-none"></div>
 
-        {/* Title */}
-        <h1 className="text-4xl md:text-5xl font-black text-center text-white tracking-tight leading-tight mb-4">
-          Download <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-blue-500 bg-clip-text text-transparent">StockMetaPro</span> Desktop
+        {/* Hero Title */}
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center leading-tight mb-4 bg-gradient-to-r from-blue-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
+          Download Stock Meta Pro
         </h1>
-        <p className="text-slate-400 text-base md:text-lg text-center max-w-2xl mb-10 leading-relaxed">
-          The ultimate automation & metadata contributor app. Download the official setup below and activate your account using your license key.
+        <p className="text-purple-200 text-sm md:text-base text-center max-w-2xl mb-10 leading-relaxed">
+          The best SEO metadata generator tool for microstock contributors. Download the official setup below and activate your account using your license key.
         </p>
 
-        {/* Featured Latest Release Box */}
-        <div className="w-full bg-gradient-to-b from-slate-900 to-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden mb-12">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
+        {/* Featured Latest Release Box - Homepage Aesthetic */}
+        <div className="w-full bg-[#130d2e]/80 border border-purple-900/40 rounded-3xl p-8 shadow-2xl relative overflow-hidden mb-12 backdrop-blur-sm">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+            
+            {/* Left Side: Version Tag & Details */}
             <div className="space-y-3 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-3">
-                <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-black px-3 py-1 rounded-md uppercase tracking-wider">
-                  LATEST RELEASE
+                <span className="bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  ✓ OFFICIAL LATEST RELEASE
                 </span>
-                <span className="text-xs font-semibold text-slate-400">Windows 10 / 11 (64-bit)</span>
+                <span className="text-xs font-medium text-purple-300">Windows (64-bit)</span>
               </div>
 
               <div className="flex items-baseline justify-center md:justify-start gap-3">
-                <h2 className="text-3xl font-extrabold text-white">
+                <h2 className="text-3xl font-extrabold text-yellow-400 font-mono">
                   v{appInfo.latest_version}
                 </h2>
-                <span className="text-xs text-slate-500 font-mono">StockMetaPro_Setup.exe</span>
+                <span className="text-xs text-gray-400 font-mono">StockMetaPro_Setup.exe</span>
               </div>
 
-              <p className="text-xs text-slate-400 max-w-md leading-relaxed">
+              <p className="text-xs text-purple-200/80 max-w-md leading-relaxed">
                 {appInfo.release_notes}
               </p>
             </div>
 
-            {/* Download Action Area */}
+            {/* Right Side: Download Button (NO version text inside button) */}
             <div className="flex flex-col items-center shrink-0 w-full md:w-auto">
               <a
                 href={appInfo.download_url}
-                className="w-full md:w-auto bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/30 text-center flex items-center justify-center gap-3 transform hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full md:w-auto bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold text-base px-10 py-4 rounded-full transition-all shadow-lg hover:shadow-pink-500/30 text-center flex items-center justify-center gap-3 transform hover:-translate-y-1 active:translate-y-0"
               >
                 <span className="text-xl">📥</span>
-                <span>Download App (v{appInfo.latest_version})</span>
+                <span>Download Software</span>
               </a>
-              <span className="text-[11px] text-slate-500 mt-2 font-medium">
-                Verified Clean & Virus-Free • Official Build
+              <span className="text-[11px] text-purple-300/60 mt-3 font-medium">
+                Verified Clean & Virus-Free • Official Release
               </span>
             </div>
           </div>
         </div>
 
-        {/* 3-Step Setup Guide */}
+        {/* 3 Simple Steps Installation Section */}
         <div className="w-full">
-          <h3 className="text-center text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-6">
-            HOW TO INSTALL & GET STARTED
+          <h3 className="text-center text-sm font-bold text-purple-300 uppercase tracking-widest mb-6">
+            3 Simple Installation Steps
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 text-center">
-              <div className="w-8 h-8 rounded-full bg-blue-950 text-blue-400 font-bold text-sm flex items-center justify-center mx-auto mb-3 border border-blue-800/60">
-                1
-              </div>
-              <h4 className="text-sm font-bold text-white mb-1">Download Setup</h4>
-              <p className="text-xs text-slate-400">Click the button above to download the latest setup file to your PC.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-[#130d2e]/50 border border-purple-900/30 rounded-2xl p-6 text-center">
+              <span className="text-2xl font-extrabold text-purple-400 mb-2 block">1.</span>
+              <h4 className="text-base font-bold text-white mb-2">Download Setup</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">Click the Download Software button to get the setup file.</p>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 text-center">
-              <div className="w-8 h-8 rounded-full bg-blue-950 text-blue-400 font-bold text-sm flex items-center justify-center mx-auto mb-3 border border-blue-800/60">
-                2
-              </div>
-              <h4 className="text-sm font-bold text-white mb-1">Run Installer</h4>
-              <p className="text-xs text-slate-400">Open <code className="text-blue-400">StockMetaPro_Setup.exe</code> and follow installation prompts.</p>
+            <div className="bg-[#130d2e]/50 border border-purple-900/30 rounded-2xl p-6 text-center">
+              <span className="text-2xl font-extrabold text-purple-400 mb-2 block">2.</span>
+              <h4 className="text-base font-bold text-white mb-2">Run Installer</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">Open <code className="text-yellow-400 font-mono">StockMetaPro_Setup.exe</code> and install the app.</p>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 text-center">
-              <div className="w-8 h-8 rounded-full bg-blue-950 text-blue-400 font-bold text-sm flex items-center justify-center mx-auto mb-3 border border-blue-800/60">
-                3
-              </div>
-              <h4 className="text-sm font-bold text-white mb-1">Activate License</h4>
-              <p className="text-xs text-slate-400">Enter the License Key sent to your email to activate and start using the app.</p>
+            <div className="bg-[#130d2e]/50 border border-purple-900/30 rounded-2xl p-6 text-center">
+              <span className="text-2xl font-extrabold text-purple-400 mb-2 block">3.</span>
+              <h4 className="text-base font-bold text-white mb-2">Activate License</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">Enter your License Key sent to your email to start using Stock Meta Pro.</p>
             </div>
           </div>
         </div>
 
       </main>
 
-      {/* Simple Footer */}
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-600">
-        © {new Date().getFullYear()} StockMetaPro. All rights reserved.
+      {/* Footer - Identical to Homepage */}
+      <footer className="border-t border-purple-900/20 py-6 text-center text-xs text-purple-300/60 bg-[#0c091e]">
+        © {new Date().getFullYear()} Stock Meta Pro. All rights reserved.
       </footer>
     </div>
   );
